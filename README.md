@@ -25,7 +25,7 @@
 <p>/pex group [group] create [prefix] [suffix] [default:int] [parent] ✔</p>
 <p>/pex group [group] _delete ❌</p>
 <p>/pex group [group] parents ❌</p>
-<p>/pex group [group] _add [permission] [world] ❌</p>
+<p>/pex group [group] _add [permission] [world] ✔</p>
 <p>/pex group [group] remove [permission] [world] ❌</p>
 <p>/pex group [group] timed _add [permission] [lifetime] [world] ❌</p>
 <p>/pex group [group] timed remove [permission] [world] ❌</p>
@@ -60,7 +60,7 @@
 <p>/pex group [group] create [prefix] [suffix] [default:int] [parent] ✔</p>
 <p>/pex group [group] _delete ❌</p>
 <p>/pex group [group] parents ❌</p>
-<p>/pex group [group] _add [permission] [world] ❌</p>
+<p>/pex group [group] _add [permission] [world] ✔</p>
 <p>/pex group [group] remove [permission] [world] ❌</p>
 <p>/pex group [group] timed _add [permission] [lifetime] [world] ❌</p>
 <p>/pex group [group] timed remove [permission] [world] ❌</p>
