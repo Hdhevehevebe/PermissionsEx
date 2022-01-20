@@ -336,7 +336,6 @@ namespace YAML
                 world.group = node[name]["worlds"][name1]["group"].as<string>();
                 world.inheritance = node[name]["worlds"][name1]["inheritance"].as<string>();
                 rhs.worlds.push_back(world);
-                break;
             }
             return true;
         }
