@@ -16,7 +16,7 @@
 <p>/pex user <user> group _add <permission/group> [world] [lifetime] ✔</p>
 <p>/pex user <user> group _remove <permission/group> [world] ✔</p>
 <p>/pex user <user> group list [world] ❌</p>
-<p>/pex user <user> group set <group> [world] ❌</p>
+<p>/pex user <user> group set <group> [world] ✔</p>
 <p>/pex groups ❌</p>
 <p>/pex default group [world] ❌</p>
 <p>/pex set default group <group> [world] ❌</p>
