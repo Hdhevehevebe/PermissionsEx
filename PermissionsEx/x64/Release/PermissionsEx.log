@@ -19,8 +19,8 @@ D:\PermissionsEx\PermissionsEx\dllmain.cpp(685,16): warning C4996: 'localtime': 
      Создается библиотека D:\PermissionsEx\x64\Release\PermissionsEx.lib и объект D:\PermissionsEx\x64\Release\PermissionsEx.exp
 LINK : warning LNK4098: библиотека по умолчанию "MSVCRT" конфликтует с использованием других библиотек; используйте /NODEFAULTLIB:library
   Создание кода
-  32 of 3842 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
+  1 of 3842 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    8 functions had inline decision re-evaluated but remain unchanged
+    14 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   PermissionsEx.vcxproj -> D:\PermissionsEx\x64\Release\PermissionsEx.dll
