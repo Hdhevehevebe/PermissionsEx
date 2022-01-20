@@ -13,7 +13,7 @@
 <p>/pex user <user> _add <permission> [world] ✔</p>
 <p>/pex user <user> remove <permission> [world] ✔</p>
 <p>/pex user <user> _delete ✔</p>
-<p>/pex user <user> group _add <permission/group> [world] [lifetime] ✔</p>
+<p>/pex user <user> group _add <permission/group:string> [world] [lifetime] ✔</p>
 <p>/pex user <user> group _remove <permission/group> [world] ✔</p>
 <p>/pex user <user> group list [world] ❌</p>
 <p>/pex user <user> group set <group> [world] ✔</p>
