@@ -773,7 +773,7 @@ class Pex : public Command
     int lifetime;
     string parent;
     int is_default = -1;
-    bool is_list;
+    bool is_list,is_add;
     string opval,opval1,opval2,opval3;
 public:
     void execute(CommandOrigin const& ori, CommandOutput& output) const override
@@ -3177,10 +3177,136 @@ public:
                   output.error(error_msg);
                   return;
               }
+              case Group_Operation::Add:
+              {
+                  jxd:
+                  string dim;
+                  if (ori.getDimension()->getDimensionId() == 0)
+                      dim = "OverWorld";
+                  else if (ori.getDimension()->getDimensionId() == 1)
+                      dim = "Nether";
+                  else if (ori.getDimension()->getDimensionId() == 2)
+                      dim = "End";
+                  string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                  string perm = "permissions.manage.groups.permissions." + group;
+                  if (group == "" || group_permission == "")
+                  {
+                      output.error(error_msg1);
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              groups.groups[i].perms.push_back(group_permission);
+                              break;
+                          }
+                      }
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Право для группы выдано успешно!"));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              groups.groups[i].perms.push_back(group_permission);
+                              break;
+                          }
+                      }
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Право для группы выдано успешно!"));
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              for (int j = 0; j < groups.groups[i].worlds.size(); ++j)
+                              {
+                                  if (world == groups.groups[i].worlds[j].name)
+                                  {
+                                      groups.groups[i].worlds[j].permissions.push_back(group_permission);
+                                      break;
+                                  }
+                              }
+                          }
+                      }
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Право для группы выдано успешно!"));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              for (int j = 0; j < groups.groups[i].worlds.size(); ++j)
+                              {
+                                  if (world == groups.groups[i].worlds[j].name)
+                                  {
+                                      groups.groups[i].worlds[j].permissions.push_back(group_permission);
+                                      break;
+                                  }
+                              }
+                          }
+                      }
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Право для группы выдано успешно!"));
+                      return;
+                  }
+                  output.error(error_msg);
+                  return;
+              }
             }
        }
        case Operation::Help:
         {
+           if (is_add)
+               goto jxd;
            string dim;
            if (ori.getDimension()->getDimensionId() == 0)
                dim = "OverWorld";
@@ -3275,7 +3401,7 @@ public:
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "create", "create").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_prefix, "prefix"), RegisterCommandHelper::makeMandatory(&Pex::group_suffix, "suffix"), RegisterCommandHelper::makeMandatory(&Pex::is_default, "default"),RegisterCommandHelper::makeOptional(&Pex::parent, "parent"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_delete", "_delete").addOptions((CommandParameterOption)1));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "prents", "parents").addOptions((CommandParameterOption)1));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_add", "_add").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_add", "_add",&Pex::is_add).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "remove", "remove").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "timed", "timed").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_tm_op, "_add", "_add").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::lifetime, "lifetime"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "timed", "timed").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_tm_op, "remove", "remove").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
