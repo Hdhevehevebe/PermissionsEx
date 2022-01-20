@@ -2812,6 +2812,266 @@ public:
              }
            }
        }
+        case Operation::Group:
+        {
+            switch (gr_op)
+            {
+              case Group_Operation::Prefix:
+              {
+                  string dim;
+                  if (ori.getDimension()->getDimensionId() == 0)
+                      dim = "OverWorld";
+                  else if (ori.getDimension()->getDimensionId() == 1)
+                      dim = "Nether";
+                  else if (ori.getDimension()->getDimensionId() == 2)
+                      dim = "End";
+                  string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                  string perm = "permissions.manage.groups.prefix." + group;
+                  if (group == "")
+                  {
+                      output.error(error_msg1);
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              groups.groups[i].prefix = group_prefix;
+                              break;
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Префикс группы изменен успешно!"));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              groups.groups[i].prefix = group_prefix;
+                              break;
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Префикс группы изменен успешно!"));
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              for (auto j = 0; j < groups.groups[i].worlds.size(); ++j)
+                              {
+                                  if (world == groups.groups[i].worlds[j].name)
+                                  {
+                                      groups.groups[i].worlds[j].prefix = group_prefix;
+                                      break;
+                                  }
+                              }
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Префикс группы изменен успешно!"));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              for (auto j = 0; j < groups.groups[i].worlds.size(); ++j)
+                              {
+                                  if (world == groups.groups[i].worlds[j].name)
+                                  {
+                                      groups.groups[i].worlds[j].prefix = group_prefix;
+                                      break;
+                                  }
+                              }
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Префикс группы изменен успешно!"));
+                      return;
+                  }
+                  output.error(error_msg);
+                  return;
+              }
+              case Group_Operation::Suffix:
+              {
+                  string dim;
+                  if (ori.getDimension()->getDimensionId() == 0)
+                      dim = "OverWorld";
+                  else if (ori.getDimension()->getDimensionId() == 1)
+                      dim = "Nether";
+                  else if (ori.getDimension()->getDimensionId() == 2)
+                      dim = "End";
+                  string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                  string perm = "permissions.manage.groups.suffix." + group;
+                  if (group == "")
+                  {
+                      output.error(error_msg1);
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              groups.groups[i].suffix = group_suffix;
+                              break;
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Суфикс группы изменен успешно!"));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              groups.groups[i].suffix = group_suffix;
+                              break;
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Суфикс группы изменен успешно!"));
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              for (auto j = 0; j < groups.groups[i].worlds.size(); ++j)
+                              {
+                                  if (world == groups.groups[i].worlds[j].name)
+                                  {
+                                      groups.groups[i].worlds[j].suffix = group_suffix;
+                                      break;
+                                  }
+                              }
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Суфикс группы изменен успешно!"));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              for (auto j = 0; j < groups.groups[i].worlds.size(); ++j)
+                              {
+                                  if (world == groups.groups[i].worlds[j].name)
+                                  {
+                                      groups.groups[i].worlds[j].suffix = group_suffix;
+                                      break;
+                                  }
+                              }
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Суфикс группы изменен успешно!"));
+                      return;
+                  }
+                  output.error(error_msg);
+                  return;
+              }
+            }
+       }
        case Operation::Help:
         {
            string dim;
