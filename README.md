@@ -57,7 +57,7 @@
 <p>/pex set default group [group] [world] ❌</p>
 <p>/pex group [group] prefix [prefix] [world] ✔</p>
 <p>/pex group [group] suffix [suffix] [world] ✔</p>
-<p>/pex group [group] create [prefix] [suffix] [default:int] [parent] ❌</p>
+<p>/pex group [group] create [prefix] [suffix] [default:int] [parent] ✔</p>
 <p>/pex group [group] _delete ❌</p>
 <p>/pex group [group] parents ❌</p>
 <p>/pex group [group] _add [permission] [world] ❌</p>
