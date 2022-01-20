@@ -37,7 +37,7 @@
 <p>/pex world <world> inherint [parentWorld] ❌</p>
 <p>/pex default group <group> [world] ❌</p>
 <p></p>
-<p>Permissions Ex команды:</p>
+<p>Permissions Ex commands:</p>
 <p>/pex help ✔</p>
 <p>/pex toggle debug ✔</p>
 <p>/pex reload ✔</p>
