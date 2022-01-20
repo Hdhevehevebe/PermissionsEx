@@ -772,7 +772,7 @@ class Pex : public Command
     string user_permission, group_permission, world, user_prefix, user_suffix, group_prefix, group_suffix,group,parent_world;
     int lifetime;
     string parent;
-    int is_default;
+    int is_default = -1;
     bool is_list;
     string opval,opval1,opval2,opval3;
 public:
@@ -3065,6 +3065,113 @@ public:
                       fout << node;
                       fout.close();
                       output.success(utf8_encode(L"[Permissions Ex]: Суфикс группы изменен успешно!"));
+                      return;
+                  }
+                  output.error(error_msg);
+                  return;
+              }
+              case Group_Operation::Create:
+              {
+                  string dim;
+                  if (ori.getDimension()->getDimensionId() == 0)
+                      dim = "OverWorld";
+                  else if (ori.getDimension()->getDimensionId() == 1)
+                      dim = "Nether";
+                  else if (ori.getDimension()->getDimensionId() == 2)
+                      dim = "End";
+                  string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                  string perm = "permissions.manage.groups.suffix." + group;
+                  if (group == "" || group_prefix == "" || group_suffix == "" || is_default == -1)
+                  {
+                      output.error(error_msg1);
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      _Group gr;
+                      gr.name = group;
+                      gr.prefix = group_prefix;
+                      gr.suffix = group_suffix;
+                      if (is_default)
+                      {
+                          for (int i = 0; i < groups.groups.size(); ++i)
+                          {
+                              if (groups.groups[i].is_default)
+                                  groups.groups[i].is_default = false;
+                          }
+                          gr.is_default = is_default;
+                      }
+                      else
+                      {
+                          gr.is_default = is_default;
+                      }
+                      gr.perms = {};
+                      gr.inheritance = parent;
+                      World overworld;
+                      overworld.name = "OverWorld";
+                      World nether;
+                      nether.name = "Nether";
+                      World end;
+                      end.name = "End";
+                      gr.worlds.push_back(overworld);
+                      gr.worlds.push_back(nether);
+                      gr.worlds.push_back(end);
+                      groups.groups.push_back(gr);
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Группа успешно создана!"));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      _Group gr;
+                      gr.name = group;
+                      gr.prefix = group_prefix;
+                      gr.suffix = group_suffix;
+                      if (is_default)
+                      {
+                          for (int i = 0; i < groups.groups.size(); ++i)
+                          {
+                              if (groups.groups[i].is_default)
+                                  groups.groups[i].is_default = false;
+                          }
+                          gr.is_default = is_default;
+                      }
+                      else
+                      {
+                          gr.is_default = is_default;
+                      }
+                      gr.perms = {};
+                      gr.inheritance = parent;
+                      World overworld;
+                      overworld.name = "OverWorld";
+                      World nether;
+                      nether.name = "Nether";
+                      World end;
+                      end.name = "End";
+                      gr.worlds.push_back(overworld);
+                      gr.worlds.push_back(nether);
+                      gr.worlds.push_back(end);
+                      groups.groups.push_back(gr);
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Группа успешно создана!"));
                       return;
                   }
                   output.error(error_msg);
