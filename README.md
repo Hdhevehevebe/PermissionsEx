@@ -31,7 +31,7 @@
 <p>/pex group [group] timed _add [permission] [lifetime] [world] ❌</p>
 <p>/pex group [group] timed remove [permission] [world] ❌</p>
 <p>/pex group [group] users ✔</p>
-<p>/pex group [group] user _add [user] [world] [time] ❌</p>
+<p>/pex group [group] user _add [user] [time] [world]❌</p>
 <p>/pex group [group] user remove [user] [world] ❌</p>
 <p>/pex worlds ❌</p>
 <p>/pex world [world] ❌</p>
@@ -67,7 +67,7 @@
 <p>/pex group [group] timed _add [permission] [lifetime] [world] ✔</p>
 <p>/pex group [group] timed remove [permission] [world] ✔</p>
 <p>/pex group [group] users ✔</p>
-<p>/pex group [group] user _add [user] [world] [time] ❌</p>
+<p>/pex group [group] user _add [user] [time] [world]❌</p>
 <p>/pex group [group] user remove [user] [world] ❌</p>
 <p>/pex worlds ❌</p>
 <p>/pex world [world] ❌</p>
