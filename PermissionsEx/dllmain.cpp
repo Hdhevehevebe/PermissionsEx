@@ -116,7 +116,7 @@ struct ChatConfig
 struct ModifyworldConfig
 {
     bool informPlayers;
-    bool whitelist;
+    bool whitelist = false;
     vector<string> messages;
 };
 
@@ -511,7 +511,12 @@ bool checkPerm(string pl, string perm)
             }
         }
         auto pl1 = load_user(res_nick);
-        auto gr = load_group(pl1.group);
+        _Group gr;
+        auto l = split(pl1.group, ":");
+        if (l.size() > 0)
+            gr = load_group(l[0]);
+        else
+            gr = load_group(pl1.group);
         for (auto v : pl1.permissions)
         {
             if (v == perm)
@@ -564,7 +569,12 @@ bool checkPermWorlds(string pl, string perm,string world)
         }
     }
     auto pl1 = load_user(res_nick);
-    auto gr = load_group(pl1.group);
+    _Group gr;
+    auto l = split(pl1.group, ":");
+    if (l.size() > 0)
+        gr = load_group(l[0]);
+    else
+        gr = load_group(pl1.group);
     if (world == "OverWorld")
     {
         for (auto dim : pl1.worlds)
@@ -773,8 +783,10 @@ class Pex : public Command
     int lifetime;
     string parent;
     int is_default = -1;
-    bool is_list,is_add,is_remove;
+    bool is_list,is_add,is_remove,is_delete;
     string opval,opval1,opval2,opval3;
+    bool is_parentset;
+    bool is_timeadd, is_timeremove,is_users,is_usradd,is_usrremove;
 public:
     void execute(CommandOrigin const& ori, CommandOutput& output) const override
     {
@@ -964,11 +976,21 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     string prefix = user_prefix;
+                     for (int i = 0; i < prefix.size(); ++i)
+                     {
+                         if (prefix[i] == '&')
+                         {
+                             prefix[i] = '§';
+                             break;
+                         }
+                     }
+                     prefix = utf8_encode(to_wstring(prefix));
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (player.getName() == users.users[i].nickname)
                          {
-                             users.users[i].prefix = user_prefix;
+                             users.users[i].prefix = prefix;
                              break;
                          }
                      }
@@ -990,14 +1012,24 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
-                     for (int i = 0; i < users.users.size(); ++i)
+                     string prefix = user_prefix;
+                     for (int i = 0; i < prefix.size(); ++i)
                      {
-                         if (users.users[i].nickname == player.getName())
+                         if (prefix[i] == '&')
                          {
-                             users.users[i].prefix = user_prefix;
+                             prefix[i] = '§';
                              break;
                          }
                      }
+                     for (int i = 0; i < users.users.size(); ++i)
+                     {
+                         if (player.getName() == users.users[i].nickname)
+                         {
+                             users.users[i].prefix = prefix;
+                             break;
+                         }
+                     }
+                     prefix = utf8_encode(to_wstring(prefix));
                      remove("plugins/Permissions Ex/users.yml");
                      node.reset();
                      for (auto us : users.users)
@@ -1016,6 +1048,16 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     string prefix = user_prefix;
+                     for (int i = 0; i < prefix.size(); ++i)
+                     {
+                         if (prefix[i] == '&')
+                         {
+                             prefix[i] = '§';
+                             break;
+                         }
+                     }
+                     prefix = utf8_encode(to_wstring(prefix));
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1024,7 +1066,7 @@ public:
                              {
                                  if (world == users.users[i].worlds[j].name)
                                  {
-                                     users.users[i].worlds[j].prefix = user_prefix;
+                                     users.users[i].worlds[j].prefix = prefix;
                                      break;
                                  }
                              }
@@ -1048,6 +1090,16 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     string prefix = user_prefix;
+                     for (int i = 0; i < prefix.size(); ++i)
+                     {
+                         if (prefix[i] == '&')
+                         {
+                             prefix[i] = '§';
+                             break;
+                         }
+                     }
+                     prefix = utf8_encode(to_wstring(prefix));
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1056,7 +1108,7 @@ public:
                              {
                                  if (world == users.users[i].worlds[j].name)
                                  {
-                                     users.users[i].worlds[j].prefix = user_prefix;
+                                     users.users[i].worlds[j].prefix = prefix;
                                      break;
                                  }
                              }
@@ -1100,11 +1152,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     string suffix = user_suffix;
+                     for (int i = 0; i < suffix.size(); ++i)
+                     {
+                         if (suffix[i] == '&')
+                         {
+                             suffix[i] = '§';
+                         }
+                     }
+                     suffix = utf8_encode(to_wstring(suffix));
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
                          {
-                             users.users[i].suffix = user_suffix;
+                             users.users[i].suffix = suffix;
                              break;
                          }
                      }
@@ -1128,11 +1189,20 @@ public:
                          {
                              users.users.push_back(p.as<_User>());
                          }
+                         string suffix = user_suffix;
+                         for (int i = 0; i < suffix.size(); ++i)
+                         {
+                             if (suffix[i] == '&')
+                             {
+                                 suffix[i] = '§';
+                             }
+                         }
+                         suffix = utf8_encode(to_wstring(suffix));
                          for (int i = 0; i < users.users.size(); ++i)
                          {
-                             if (player.getName() == users.users[i].nickname)
+                             if (users.users[i].nickname == player.getName())
                              {
-                                 users.users[i].suffix = user_suffix;
+                                 users.users[i].suffix = suffix;
                                  break;
                              }
                          }
@@ -1160,6 +1230,15 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     string suffix = user_suffix;
+                     for (int i = 0; i < suffix.size(); ++i)
+                     {
+                         if (suffix[i] == '&')
+                         {
+                             suffix[i] = '§';
+                         }
+                     }
+                     suffix = utf8_encode(to_wstring(suffix));
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1168,7 +1247,7 @@ public:
                              {
                                  if (world == users.users[i].worlds[j].name)
                                  {
-                                     users.users[i].worlds[j].suffix = user_suffix;
+                                     users.users[i].worlds[j].suffix = suffix;
                                      break;
                                  }
                              }
@@ -1193,6 +1272,15 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     string suffix = user_suffix;
+                     for (int i = 0; i < suffix.size(); ++i)
+                     {
+                         if (suffix[i] == '&')
+                         {
+                             suffix[i] = '§';
+                         }
+                     }
+                     suffix = utf8_encode(to_wstring(suffix));
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1201,7 +1289,7 @@ public:
                              {
                                  if (world == users.users[i].worlds[j].name)
                                  {
-                                     users.users[i].worlds[j].suffix = user_suffix;
+                                     users.users[i].worlds[j].suffix = suffix;
                                      break;
                                  }
                              }
@@ -2838,11 +2926,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      string prefix = group_prefix;
+                      for (int i = 0; i < prefix.size(); ++i)
+                      {
+                          if (prefix[i] == '&')
+                          {
+                              prefix[i] = '§';
+                          }
+                      }
+                      prefix = utf8_encode(to_wstring(prefix));
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
                           {
-                              groups.groups[i].prefix = group_prefix;
+                              groups.groups[i].prefix = prefix;
                               break;
                           }
                       }
@@ -2862,11 +2959,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      string prefix = group_prefix;
+                      for (int i = 0; i < prefix.size(); ++i)
+                      {
+                          if (prefix[i] == '&')
+                          {
+                              prefix[i] = '§';
+                          }
+                      }
+                      prefix = utf8_encode(to_wstring(prefix));
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
                           {
-                              groups.groups[i].prefix = group_prefix;
+                              groups.groups[i].prefix = prefix;
                               break;
                           }
                       }
@@ -2886,6 +2992,15 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      string prefix = group_prefix;
+                      for (int i = 0; i < prefix.size(); ++i)
+                      {
+                          if (prefix[i] == '&')
+                          {
+                              prefix[i] = '§';
+                          }
+                      }
+                      prefix = utf8_encode(to_wstring(prefix));
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -2894,7 +3009,7 @@ public:
                               {
                                   if (world == groups.groups[i].worlds[j].name)
                                   {
-                                      groups.groups[i].worlds[j].prefix = group_prefix;
+                                      groups.groups[i].worlds[j].prefix = prefix;
                                       break;
                                   }
                               }
@@ -2916,6 +3031,15 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      string prefix = group_prefix;
+                      for (int i = 0; i < prefix.size(); ++i)
+                      {
+                          if (prefix[i] == '&')
+                          {
+                              prefix[i] = '§';
+                          }
+                      }
+                      prefix = utf8_encode(to_wstring(prefix));
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -2924,7 +3048,7 @@ public:
                               {
                                   if (world == groups.groups[i].worlds[j].name)
                                   {
-                                      groups.groups[i].worlds[j].prefix = group_prefix;
+                                      groups.groups[i].worlds[j].prefix = prefix;
                                       break;
                                   }
                               }
@@ -2965,11 +3089,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      string suffix = group_suffix;
+                      for (int i = 0; i < suffix.size(); ++i)
+                      {
+                          if (suffix[i] == '&')
+                          {
+                              suffix[i] = '§';
+                          }
+                      }
+                      suffix = utf8_encode(to_wstring(suffix));
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
                           {
-                              groups.groups[i].suffix = group_suffix;
+                              groups.groups[i].suffix = suffix;
                               break;
                           }
                       }
@@ -2989,11 +3122,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      string suffix = group_suffix;
+                      for (int i = 0; i < suffix.size(); ++i)
+                      {
+                          if (suffix[i] == '&')
+                          {
+                              suffix[i] = '§';
+                          }
+                      }
+                      suffix = utf8_encode(to_wstring(suffix));
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
                           {
-                              groups.groups[i].suffix = group_suffix;
+                              groups.groups[i].suffix = suffix;
                               break;
                           }
                       }
@@ -3013,6 +3155,15 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      string suffix = group_suffix;
+                      for (int i = 0; i < suffix.size(); ++i)
+                      {
+                          if (suffix[i] == '&')
+                          {
+                              suffix[i] = '§';
+                          }
+                      }
+                      suffix = utf8_encode(to_wstring(suffix));
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3021,7 +3172,7 @@ public:
                               {
                                   if (world == groups.groups[i].worlds[j].name)
                                   {
-                                      groups.groups[i].worlds[j].suffix = group_suffix;
+                                      groups.groups[i].worlds[j].suffix = suffix;
                                       break;
                                   }
                               }
@@ -3043,6 +3194,15 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      string suffix = group_suffix;
+                      for (int i = 0; i < suffix.size(); ++i)
+                      {
+                          if (suffix[i] == '&')
+                          {
+                              suffix[i] = '§';
+                          }
+                      }
+                      suffix = utf8_encode(to_wstring(suffix));
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3051,7 +3211,7 @@ public:
                               {
                                   if (world == groups.groups[i].worlds[j].name)
                                   {
-                                      groups.groups[i].worlds[j].suffix = group_suffix;
+                                      groups.groups[i].worlds[j].suffix = suffix;
                                       break;
                                   }
                               }
@@ -3072,6 +3232,8 @@ public:
               }
               case Group_Operation::Create:
               {
+                  if (is_delete)
+                      goto jcc2;
                   string dim;
                   if (ori.getDimension()->getDimensionId() == 0)
                       dim = "OverWorld";
@@ -3080,7 +3242,7 @@ public:
                   else if (ori.getDimension()->getDimensionId() == 2)
                       dim = "End";
                   string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
-                  string perm = "permissions.manage.groups.suffix." + group;
+                  string perm = "permissions.manageups.create." + group;
                   if (group == "" || group_prefix == "" || group_suffix == "" || is_default == -1)
                   {
                       output.error(error_msg1);
@@ -3094,8 +3256,25 @@ public:
                           groups.groups.push_back(p.as<_Group>());
                       _Group gr;
                       gr.name = group;
-                      gr.prefix = group_prefix;
-                      gr.suffix = group_suffix;
+                      string prefix = group_prefix,suffix = group_suffix;
+                      for (int i = 0; i < group_prefix.size(); ++i)
+                      {
+                          if (group_prefix[i] == '&')
+                          {
+                              prefix[i] = '§';
+                          }
+                      }
+                      prefix = utf8_encode(to_wstring(prefix));
+                      for (int i = 0; i < group_suffix.size(); ++i)
+                      {
+                          if (group_suffix[i] == '&')
+                          {
+                              suffix[i] = '§';
+                          }
+                      }
+                      suffix = utf8_encode(to_wstring(suffix));
+                      gr.prefix = prefix;
+                      gr.suffix = suffix;
                       if (is_default)
                       {
                           for (int i = 0; i < groups.groups.size(); ++i)
@@ -3121,6 +3300,7 @@ public:
                       gr.worlds.push_back(nether);
                       gr.worlds.push_back(end);
                       groups.groups.push_back(gr);
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3165,6 +3345,7 @@ public:
                       gr.worlds.push_back(nether);
                       gr.worlds.push_back(end);
                       groups.groups.push_back(gr);
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3208,6 +3389,7 @@ public:
                               break;
                           }
                       }
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3231,6 +3413,7 @@ public:
                               break;
                           }
                       }
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3260,6 +3443,7 @@ public:
                               }
                           }
                       }
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3269,7 +3453,7 @@ public:
                       output.success(utf8_encode(L"[Permissions Ex]: Право для группы выдано успешно!"));
                       return;
                   }
-                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
                   {
                       _Groups groups;
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
@@ -3289,6 +3473,7 @@ public:
                               }
                           }
                       }
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3342,6 +3527,7 @@ public:
                               break;
                           }
                       }
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3380,6 +3566,7 @@ public:
                               }
                           }
                       }
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3413,6 +3600,7 @@ public:
                               break;
                           }
                       }
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3422,7 +3610,7 @@ public:
                       output.success(utf8_encode(L"[Permissions Ex]: Право у группы забрано успешно!"));
                       return;
                   }
-                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
                   {
                       _Groups groups;
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
@@ -3451,6 +3639,7 @@ public:
                               }
                           }
                       }
+                      remove("plugins/Permissions Ex/groups.yml");
                       node.reset();
                       for (auto gr : groups.groups)
                           node["groups"].push_back(gr);
@@ -3463,6 +3652,1116 @@ public:
                   output.error(error_msg);
                   return;
               }
+              case Group_Operation::Delete:
+              {
+              jcc2:
+                  if (is_usradd)
+                      goto jex;
+                  string dim;
+                  if (ori.getDimension()->getDimensionId() == 0)
+                      dim = "OverWorld";
+                  else if (ori.getDimension()->getDimensionId() == 1)
+                      dim = "Nether";
+                  else if (ori.getDimension()->getDimensionId() == 2)
+                      dim = "End";
+                  string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                  string perm = "permissions.manage.groups.remove." + group;
+                  if (group == "")
+                  {
+                      output.error(error_msg1);
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      Users users;
+                      YAML::Node node2 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                      for (const auto& p : node2["users"])
+                          users.users.push_back(p.as<_User>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              auto sz = groups.groups.size();
+                              groups.groups.erase(groups.groups.begin() + i, groups.groups.begin() + i);
+                              groups.groups.resize(sz - 1);
+                              for (int j = 0; j < users.users.size(); ++j)
+                              {
+                                  if (users.users[j].group == group)
+                                  {
+                                      for (int i1 = 0; i1 < groups.groups.size(); ++i1)
+                                      {
+                                          if (groups.groups[i1].is_default)
+                                          {
+                                              users.users[j].group = groups.groups[i1].name;
+                                              users.users[j].prefix = groups.groups[i1].prefix;
+                                              users.users[j].suffix = groups.groups[i1].suffix;
+                                              break;
+                                          }
+                                      }
+                                  }
+                                  for (int j11 = 0; j11 < users.users[j].worlds.size(); ++j11)
+                                  {
+                                      if (users.users[j].worlds[j11].group == group)
+                                      {
+                                          for (int i1 = 0; i1 < groups.groups.size(); ++i1)
+                                          {
+                                              if (groups.groups[i1].is_default)
+                                              {
+                                                  users.users[j].worlds[j11].group = groups.groups[i1].name;
+                                                  users.users[j].worlds[j11].prefix = groups.groups[i1].prefix;
+                                                  users.users[j].worlds[j11].suffix = groups.groups[i1].suffix;
+                                                  break;
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                              break;
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      remove("plugins/Permissions Ex/users.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      node2.reset();
+                      for (auto us :users.users)
+                          node2["users"].push_back(us);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      fout.open("plugins/Permissions Ex/users.yml");
+                      fout << node2;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Группа удалена успешно!"));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+                  {
+                      _Groups groups;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      for (const auto& p : node["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      Users users;
+                      YAML::Node node2 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                      for (const auto& p : node2["users"])
+                          users.users.push_back(p.as<_User>());
+                      for (int i = 0; i < groups.groups.size(); ++i)
+                      {
+                          if (group == groups.groups[i].name)
+                          {
+                              auto sz = groups.groups.size();
+                              groups.groups.erase(groups.groups.begin() + i, groups.groups.begin() + i);
+                              groups.groups.resize(sz - 1);
+                              for (int j = 0; j < users.users.size(); ++j)
+                              {
+                                  if (users.users[j].group == group)
+                                  {
+                                      for (int i1 = 0; i1 < groups.groups.size(); ++i1)
+                                      {
+                                          if (groups.groups[i1].is_default)
+                                          {
+                                              users.users[j].group = groups.groups[i1].name;
+                                              users.users[j].prefix = groups.groups[i1].prefix;
+                                              users.users[j].suffix = groups.groups[i1].suffix;
+                                              break;
+                                          }
+                                      }
+                                  }
+                                  for (int j11 = 0; j11 < users.users[j].worlds.size(); ++j11)
+                                  {
+                                      if (users.users[j].worlds[j11].group == group)
+                                      {
+                                          for (int i1 = 0; i1 < groups.groups.size(); ++i1)
+                                          {
+                                              if (groups.groups[i1].is_default)
+                                              {
+                                                  users.users[j].worlds[j11].group = groups.groups[i1].name;
+                                                  users.users[j].worlds[j11].prefix = groups.groups[i1].prefix;
+                                                  users.users[j].worlds[j11].suffix = groups.groups[i1].suffix;
+                                                  break;
+                                              }
+                                          }
+                                      }
+                                  }
+                              }
+                              break;
+                          }
+                      }
+                      remove("plugins/Permissions Ex/groups.yml");
+                      remove("plugins/Permissions Ex/users.yml");
+                      node.reset();
+                      for (auto gr : groups.groups)
+                          node["groups"].push_back(gr);
+                      node2.reset();
+                      for (auto us : users.users)
+                          node2["users"].push_back(us);
+                      ofstream fout("plugins/Permissions Ex/groups.yml");
+                      fout << node;
+                      fout.close();
+                      fout.open("plugins/Permissions Ex/users.yml");
+                      fout << node2;
+                      fout.close();
+                      output.success(utf8_encode(L"[Permissions Ex]: Группа удалена успешно!"));
+                      return;
+                  }
+                  output.error(error_msg);
+                  return;
+              }
+              case Group_Operation::Parents:
+              {
+              jar:
+                  if (is_users)
+                      goto jet;
+                  if (is_usrremove)
+                      goto jex1;
+                  string dim;
+                  if (ori.getDimension()->getDimensionId() == 0)
+                      dim = "OverWorld";
+                  else if (ori.getDimension()->getDimensionId() == 1)
+                      dim = "Nether";
+                  else if (ori.getDimension()->getDimensionId() == 2)
+                      dim = "End";
+                  string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                  if (!is_parentset)
+                  {
+                      string perm = "permissions.manage.groups.inheritance." + group;
+                      if (group == "")
+                      {
+                          output.error(error_msg1);
+                          return;
+                      }
+                      if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                      {
+                          wstring outp = L"[Permissions Ex]: Список родительских групп\n";
+                          auto gr = load_group(group);
+                          _Group gr1;
+                          if (gr.inheritance != "")
+                              gr1 = load_group(gr.inheritance);
+                          else
+                          {
+                              output.success(utf8_encode(outp));
+                              return;
+                          }
+                          outp += to_wstring(gr1.name);
+                          while (!gr1.is_default || gr1.inheritance != "")
+                          {
+                              outp += L"- " + to_wstring(gr.name) + L"\n";
+                          }
+                          output.success(utf8_encode(outp));
+                          return;
+                      }
+                      if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                      {
+                          wstring outp = L"[Permissions Ex]: Список родительских групп\n";
+                          auto gr = load_group(group);
+                          _Group gr1;
+                          for (auto worl : gr.worlds)
+                          {
+                              if (worl.inheritance != "")
+                                  gr1 = load_group(worl.inheritance);
+                              else
+                              {
+                                  output.success(utf8_encode(outp));
+                                  return;
+                              }
+                              outp += to_wstring(gr1.name);
+                              while (!gr1.is_default || gr1.inheritance != "")
+                              {
+                                  outp += L"- " + to_wstring(gr.name) + L"\n";
+                              }
+                              output.success(utf8_encode(outp));
+                              return;
+                          }
+                          output.success(utf8_encode(outp));
+                          return;
+                      }
+                      if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                      {
+                          wstring outp = L"[Permissions Ex]: Список родительских групп\n";
+                          auto gr = load_group(group);
+                          _Group gr1;
+                          if (gr.inheritance != "")
+                              gr1 = load_group(gr.inheritance);
+                          else
+                          {
+                              output.success(utf8_encode(outp));
+                              return;
+                          }
+                          outp += to_wstring(gr1.name);
+                          while (!gr1.is_default || gr1.inheritance != "")
+                          {
+                              outp += L"- " + to_wstring(gr.name) + L"\n";
+                          }
+                          output.success(utf8_encode(outp));
+                          return;
+                      }
+                      else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
+                      {
+                          wstring outp = L"[Permissions Ex]: Список родительских групп\n";
+                          auto gr = load_group(group);
+                          _Group gr1;
+                          for (auto worl : gr.worlds)
+                          {
+                              if (worl.inheritance != "")
+                                  gr1 = load_group(worl.inheritance);
+                              else
+                              {
+                                  output.success(utf8_encode(outp));
+                                  return;
+                              }
+                              outp += to_wstring(gr1.name);
+                              while (!gr1.is_default || gr1.inheritance != "")
+                              {
+                                  outp += L"- " + to_wstring(gr.name) + L"\n";
+                              }
+                              output.success(utf8_encode(outp));
+                              return;
+                          }
+                          output.success(utf8_encode(outp));
+                          return;
+                      }
+                 }
+                 else if (is_parentset)
+                 {
+                   string perm = "permissions.manage.groups.inheritance." + group;
+                   if (group == "")
+                   {
+                     output.error(error_msg1);
+                     return;
+                   }
+                   if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                   {
+                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                       _Groups groups;
+                       for (const auto& p : node["groups"])
+                           groups.groups.push_back(p.as<_Group>());
+                       for (int i = 0; i < groups.groups.size(); ++i)
+                       {
+                           if (group == groups.groups[i].name)
+                           {
+                               groups.groups[i].inheritance = parent;
+                               break;
+                           }
+                       }
+                       remove("plugins/Permissions Ex/groups.yml");
+                       node.reset();
+                       for (auto gr : groups.groups)
+                           node["groups"].push_back(gr);
+                       ofstream fout("plugins/Permissions Ex/groups.yml");
+                       fout << node;
+                       fout.close();
+                       output.success(utf8_encode(L"[Permissions Ex]: Наследник для группы установлен успешно"));
+                       return;
+                   }
+                   if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                   {
+                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                       _Groups groups;
+                       for (const auto& p : node["groups"])
+                           groups.groups.push_back(p.as<_Group>());
+                       for (int i = 0; i < groups.groups.size(); ++i)
+                       {
+                           if (group == groups.groups[i].name)
+                           {
+                               for (int j = 0; j < groups.groups[i].worlds.size(); ++j)
+                               {
+                                   if (world == groups.groups[i].worlds[j].name)
+                                   {
+                                       groups.groups[i].worlds[j].inheritance = parent;
+                                       break;
+                                   }
+                               }
+                           }
+                       }
+                       remove("plugins/Permissions Ex/groups.yml");
+                       node.reset();
+                       for (auto gr : groups.groups)
+                           node["groups"].push_back(gr);
+                       ofstream fout("plugins/Permissions Ex/groups.yml");
+                       fout << node;
+                       fout.close();
+                       output.success(utf8_encode(L"[Permissions Ex]: Наследник для группы установлен успешно"));
+                       return;
+                   }
+                   if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                   {
+                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                       _Groups groups;
+                       for (const auto& p : node["groups"])
+                           groups.groups.push_back(p.as<_Group>());
+                       for (int i = 0; i < groups.groups.size(); ++i)
+                       {
+                           if (group == groups.groups[i].name)
+                           {
+                               groups.groups[i].inheritance = parent;
+                               break;
+                           }
+                       }
+                       remove("plugins/Permissions Ex/groups.yml");
+                       node.reset();
+                       for (auto gr : groups.groups)
+                           node["groups"].push_back(gr);
+                       ofstream fout("plugins/Permissions Ex/groups.yml");
+                       fout << node;
+                       fout.close();
+                       output.success(utf8_encode(L"[Permissions Ex]: Наследник для группы установлен успешно"));
+                       return;
+                   }
+                   else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
+                   {
+                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                       _Groups groups;
+                       for (const auto& p : node["groups"])
+                           groups.groups.push_back(p.as<_Group>());
+                       for (int i = 0; i < groups.groups.size(); ++i)
+                       {
+                           if (group == groups.groups[i].name)
+                           {
+                               for (int j = 0; j < groups.groups[i].worlds.size(); ++j)
+                               {
+                                   if (world == groups.groups[i].worlds[j].name)
+                                   {
+                                       groups.groups[i].worlds[j].inheritance = parent;
+                                       break;
+                                   }
+                               }
+                           }
+                       }
+                       remove("plugins/Permissions Ex/groups.yml");
+                       node.reset();
+                       for (auto gr : groups.groups)
+                           node["groups"].push_back(gr);
+                       ofstream fout("plugins/Permissions Ex/groups.yml");
+                       fout << node;
+                       fout.close();
+                       output.success(utf8_encode(L"[Permissions Ex]: Наследник для группы установлен успешно"));
+                       return;
+                   }
+                 }
+                 output.error(error_msg);
+                 return;
+              }
+              case Group_Operation::Timed:
+              {
+                  switch (gr_tm_op)
+                  {
+                    case Group_Timed_Operation::Add:
+                    {
+                        java:
+                        string dim;
+                        if (ori.getDimension()->getDimensionId() == 0)
+                            dim = "OverWorld";
+                        else if (ori.getDimension()->getDimensionId() == 1)
+                            dim = "Nether";
+                        else if (ori.getDimension()->getDimensionId() == 2)
+                            dim = "End";
+                        string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                        string perm = "permissions.manage.groups.permissions.timed." + group;
+                        if (group == "" || group_permission == "")
+                        {
+                            output.error(error_msg1);
+                            return;
+                        }
+                        if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                        {
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            for (int i = 0; i < groups.groups.size(); ++i)
+                            {
+                                if (group == groups.groups[i].name)
+                                {
+                                    groups.groups[i].perms.push_back(group + ":" + to_string(lifetime));
+                                    break;
+                                }
+                            }
+                            remove("plugins/Permissions Ex/groups.yml");
+                            node.reset();
+                            for (auto gr : groups.groups)
+                                node["groups"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/groups.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Временное право для группы выдано успешно"));
+                            return;
+                        }
+                        if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                        {
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            for (int i = 0; i < groups.groups.size(); ++i)
+                            {
+                                if (group == groups.groups[i].name)
+                                {
+                                    for (int j = 0; j < groups.groups[i].worlds.size(); ++j)
+                                    {
+                                        if (world == groups.groups[i].worlds[j].name)
+                                        {
+                                            groups.groups[i].worlds[j].permissions.push_back(group + ":" + to_string(lifetime));
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/groups.yml");
+                            node.reset();
+                            for (auto gr : groups.groups)
+                                node["groups"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/groups.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Временное право для группы выдано успешно"));
+                            return;
+                        }
+                        if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                        {
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            for (int i = 0; i < groups.groups.size(); ++i)
+                            {
+                                if (group == groups.groups[i].name)
+                                {
+                                    groups.groups[i].perms.push_back(group + ":" + to_string(lifetime));
+                                    break;
+                                }
+                            }
+                            remove("plugins/Permissions Ex/groups.yml");
+                            node.reset();
+                            for (auto gr : groups.groups)
+                                node["groups"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/groups.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Временное право для группы выдано успешно"));
+                            return;
+                        }
+                        else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
+                        {
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            for (int i = 0; i < groups.groups.size(); ++i)
+                            {
+                                if (group == groups.groups[i].name)
+                                {
+                                    for (int j = 0; j < groups.groups[i].worlds.size(); ++j)
+                                    {
+                                        if (world == groups.groups[i].worlds[j].name)
+                                        {
+                                            groups.groups[i].worlds[j].permissions.push_back(group + ":" + to_string(lifetime));
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/groups.yml");
+                            node.reset();
+                            for (auto gr : groups.groups)
+                                node["groups"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/groups.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Временное право для группы выдано успешно"));
+                            return;
+                        }
+                        output.error(error_msg);
+                        return;
+                    }
+                    case Group_Timed_Operation::Remove:
+                    {
+                        jar1:
+                        string dim;
+                        if (ori.getDimension()->getDimensionId() == 0)
+                            dim = "OverWorld";
+                        else if (ori.getDimension()->getDimensionId() == 1)
+                            dim = "Nether";
+                        else if (ori.getDimension()->getDimensionId() == 2)
+                            dim = "End";
+                        string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                        string perm = "permissions.manage.groups.permissions.timed." + group;
+                        if (group == "" || group_permission == "")
+                        {
+                            output.error(error_msg1);
+                            return;
+                        }
+                        if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                        {
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            for (int i = 0; i < groups.groups.size(); ++i)
+                            {
+                                if (group == groups.groups[i].name)
+                                {
+                                    for (int j = 0; j < groups.groups[i].perms.size(); ++j)
+                                    {
+                                        auto vec = split(groups.groups[i].perms[j], ":");
+                                        if (vec.size() > 0)
+                                        {
+                                            auto sz = groups.groups[i].perms.size();
+                                            groups.groups[i].perms.erase(groups.groups[i].perms.begin() + j, groups.groups[i].perms.begin() + j);
+                                            groups.groups[i].perms.resize(sz - 1);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/groups.yml");
+                            node.reset();
+                            for (auto gr : groups.groups)
+                                node["groups"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/groups.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Временное право для группы забрано успешно"));
+                            return;
+                        }
+                        if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                        {
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            for (int i = 0; i < groups.groups.size(); ++i)
+                            {
+                                if (group == groups.groups[i].name)
+                                {
+                                    for (int h = 0; h < groups.groups[i].worlds.size(); ++h)
+                                    {
+                                        if (world == groups.groups[i].worlds[h].name)
+                                        {
+                                            for (int j = 0; j < groups.groups[i].perms.size(); ++j)
+                                            {
+                                                auto vec = split(groups.groups[i].perms[j], ":");
+                                                if (vec.size() > 0)
+                                                {
+                                                    auto sz = groups.groups[i].worlds[h].permissions.size();
+                                                    groups.groups[i].worlds[h].permissions.erase(groups.groups[i].worlds[h].permissions.begin() + j, groups.groups[i].perms.begin() + j);
+                                                    groups.groups[i].worlds[h].permissions.resize(sz - 1);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/groups.yml");
+                            node.reset();
+                            for (auto gr : groups.groups)
+                                node["groups"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/groups.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Временное право для группы забрано успешно"));
+                            return;
+                        }
+                        if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                        {
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            for (int i = 0; i < groups.groups.size(); ++i)
+                            {
+                                if (group == groups.groups[i].name)
+                                {
+                                    for (int j = 0; j < groups.groups[i].perms.size(); ++j)
+                                    {
+                                        auto vec = split(groups.groups[i].perms[j], ":");
+                                        if (vec.size() > 0)
+                                        {
+                                            auto sz = groups.groups[i].perms.size();
+                                            groups.groups[i].perms.erase(groups.groups[i].perms.begin() + j, groups.groups[i].perms.begin() + j);
+                                            groups.groups[i].perms.resize(sz - 1);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/groups.yml");
+                            node.reset();
+                            for (auto gr : groups.groups)
+                                node["groups"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/groups.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Временное право для группы забрано успешно"));
+                            return;
+                        }
+                        else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
+                        {
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            for (int i = 0; i < groups.groups.size(); ++i)
+                            {
+                                if (group == groups.groups[i].name)
+                                {
+                                    for (int h = 0; h < groups.groups[i].worlds.size(); ++h)
+                                    {
+                                        if (world == groups.groups[i].worlds[h].name)
+                                        {
+                                            for (int j = 0; j < groups.groups[i].perms.size(); ++j)
+                                            {
+                                                auto vec = split(groups.groups[i].perms[j], ":");
+                                                if (vec.size() > 0)
+                                                {
+                                                    auto sz = groups.groups[i].worlds[h].permissions.size();
+                                                    groups.groups[i].worlds[h].permissions.erase(groups.groups[i].worlds[h].permissions.begin() + j, groups.groups[i].perms.begin() + j);
+                                                    groups.groups[i].worlds[h].permissions.resize(sz - 1);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/groups.yml");
+                            node.reset();
+                            for (auto gr : groups.groups)
+                                node["groups"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/groups.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Временное право для группы забрано успешно"));
+                            return;
+                        }
+                        output.error(error_msg);
+                        return;
+                    }
+                  }
+              }
+              case Group_Operation::Users:
+              {
+                  jet:
+                  string dim;
+                  if (ori.getDimension()->getDimensionId() == 0)
+                      dim = "OverWorld";
+                  else if (ori.getDimension()->getDimensionId() == 1)
+                      dim = "Nether";
+                  else if (ori.getDimension()->getDimensionId() == 2)
+                      dim = "End";
+                  string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                  string perm = "permissions.manage.membership." + group;
+                  if (group == "")
+                  {
+                      output.error(error_msg1);
+                      return;
+                  }
+                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+                  {
+                      Users users;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                      for (const auto& p : node["users"])
+                          users.users.push_back(p.as<_User>());
+                      wstring outp = L"[Permissions Ex]: Список игроков,состоящих в гурппе:\n";
+                      for (auto v : users.users)
+                      {
+                          if (v.group == group)
+                          {
+                              outp += L"- " + to_wstring(v.nickname) + L"\n";
+                          }
+                      }
+                      output.success(utf8_encode(outp));
+                      return;
+                  }
+                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+                  {
+                      Users users;
+                      YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                      for (const auto& p : node["users"])
+                          users.users.push_back(p.as<_User>());
+                      wstring outp = L"[Permissions Ex]: Список игроков,состоящих в гурппе:\n";
+                      for (auto v : users.users)
+                      {
+                          if (v.group == group)
+                          {
+                              outp += L"- " + to_wstring(v.nickname) + L"\n";
+                          }
+                      }
+                      output.success(utf8_encode(outp));
+                      return;
+                  }
+                  output.error(error_msg);
+                  return;
+              }
+              case Group_Operation::User:
+              {
+                  switch (gr_us_op)
+                  {
+                    case Group_User_Operation::Add:
+                    {
+                        jex:
+                        string dim;
+                        if (ori.getDimension()->getDimensionId() == 0)
+                            dim = "OverWorld";
+                        else if (ori.getDimension()->getDimensionId() == 1)
+                            dim = "Nether";
+                        else if (ori.getDimension()->getDimensionId() == 2)
+                            dim = "End";
+                        string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                        string perm = "permissions.manage.membership." + group;
+                        if (group == "" || player.getName() == "")
+                        {
+                            output.error(error_msg1);
+                            return;
+                        }
+                        if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                        {
+                            Users users;
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                            for (const auto& p : node["users"])
+                                users.users.push_back(p.as<_User>());
+                            for (int i = 0; i < users.users.size(); ++i)
+                            {
+                                if (player.getName() == users.users[i].nickname)
+                                {
+                                    auto gr = load_group(group);
+                                    users.users[i].group = group + ":" + to_string(lifetime);
+                                    users.users[i].prefix = gr.prefix;
+                                    users.users[i].suffix = gr.suffix;
+                                    for (int j = 0; j < gr.worlds.size(); ++j)
+                                    {
+                                        users.users[i].worlds[j].prefix = gr.worlds[j].prefix;
+                                        users.users[i].worlds[j].suffix = gr.worlds[j].suffix;
+                                    }
+                                    break;
+                                }
+                            }
+                            remove("plugins/Permissions Ex/users.yml");
+                            node.reset();
+                            for (auto gr : users.users)
+                                node["users"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/users.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            return;
+                        }
+                        if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                        {
+                            Users users;
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                            for (const auto& p : node["users"])
+                                users.users.push_back(p.as<_User>());
+                            for (int i = 0; i < users.users.size(); ++i)
+                            {
+                                if (player.getName() == users.users[i].nickname)
+                                {
+                                    for (int j = 0; j < users.users[i].worlds.size(); ++j)
+                                    {
+                                        if (world == users.users[i].worlds[j].name)
+                                        {
+                                            auto gr = load_group(group);
+                                            users.users[i].worlds[j].group = group + ":" + to_string(lifetime);
+                                            users.users[i].worlds[j].prefix = gr.worlds[j].prefix;
+                                            users.users[i].worlds[j].suffix = gr.worlds[j].suffix;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/users.yml");
+                            node.reset();
+                            for (auto gr : users.users)
+                                node["users"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/users.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            return;
+                        }
+                        if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                        {
+                            Users users;
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                            for (const auto& p : node["users"])
+                                users.users.push_back(p.as<_User>());
+                            for (int i = 0; i < users.users.size(); ++i)
+                            {
+                                if (player.getName() == users.users[i].nickname)
+                                {
+                                    auto gr = load_group(group);
+                                    users.users[i].group = group + ":" + to_string(lifetime);
+                                    users.users[i].prefix = gr.prefix;
+                                    users.users[i].suffix = gr.suffix;
+                                    for (int j = 0; j < gr.worlds.size(); ++j)
+                                    {
+                                        users.users[i].worlds[j].prefix = gr.worlds[j].prefix;
+                                        users.users[i].worlds[j].suffix = gr.worlds[j].suffix;
+                                    }
+                                    break;
+                                }
+                            }
+                            remove("plugins/Permissions Ex/users.yml");
+                            node.reset();
+                            for (auto gr : users.users)
+                                node["users"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/users.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            return;
+                        }
+                        else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
+                        {
+                            Users users;
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                            for (const auto& p : node["users"])
+                                users.users.push_back(p.as<_User>());
+                            for (int i = 0; i < users.users.size(); ++i)
+                            {
+                                if (player.getName() == users.users[i].nickname)
+                                {
+                                    for (int j = 0; j < users.users[i].worlds.size(); ++j)
+                                    {
+                                        if (world == users.users[i].worlds[j].name)
+                                        {
+                                            auto gr = load_group(group);
+                                            users.users[i].worlds[j].group = group + ":" + to_string(lifetime);
+                                            users.users[i].worlds[j].prefix = gr.worlds[j].prefix;
+                                            users.users[i].worlds[j].suffix = gr.worlds[j].suffix;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/users.yml");
+                            node.reset();
+                            for (auto gr : users.users)
+                                node["users"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/users.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            return;
+                        }
+                        output.error(error_msg);
+                        return;
+                    }
+                    case Group_User_Operation::Remove:
+                    {
+                    jex1:
+                        string dim;
+                        if (ori.getDimension()->getDimensionId() == 0)
+                            dim = "OverWorld";
+                        else if (ori.getDimension()->getDimensionId() == 1)
+                            dim = "Nether";
+                        else if (ori.getDimension()->getDimensionId() == 2)
+                            dim = "End";
+                        string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
+                        string perm = "permissions.manage.membership." + group;
+                        if (group == "" || player.getName() == "")
+                        {
+                            output.error(error_msg1);
+                            return;
+                        }
+                        if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                        {
+                            Users users;
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                            for (const auto& p : node["users"])
+                                users.users.push_back(p.as<_User>());
+                            for (int i = 0; i < users.users.size(); ++i)
+                            {
+                                if (player.getName() == users.users[i].nickname)
+                                {
+                                    auto vec = split(users.users[i].group, ":");
+                                    if (vec.size() > 0)
+                                    {
+                                        for (auto vv : groups.groups)
+                                        {
+                                            if (vv.is_default == true)
+                                            {
+                                                users.users[i].group = vv.name;
+                                                users.users[i].prefix = vv.prefix;
+                                                users.users[i].suffix = vv.suffix;
+                                                for (int j = 0; j < vv.worlds.size(); ++j)
+                                                {
+                                                    users.users[i].worlds[j].group = vv.worlds[j].group;
+                                                    users.users[i].worlds[j].prefix = vv.worlds[j].prefix;
+                                                    users.users[i].worlds[j].suffix = vv.worlds[j].suffix;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        output.error(utf8_encode(L"[Permissions Ex]: У игрока постоянная группа"));
+                                        return;
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/users.yml");
+                            node.reset();
+                            for (auto gr : users.users)
+                                node["users"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/users.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: У игрока была забрана временная группа успешно!"));
+                            return;
+                        }
+                        if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                        {
+                            Users users;
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                            for (const auto& p : node["users"])
+                                users.users.push_back(p.as<_User>());
+                            for (int i = 0; i < users.users.size(); ++i)
+                            {
+                                if (player.getName() == users.users[i].nickname)
+                                {
+                                    for (int j = 0; j < users.users[i].worlds.size(); ++j)
+                                    {
+                                        if (world == users.users[i].worlds[j].name)
+                                        {
+                                            auto vec = split(users.users[i].worlds[j].group, ":");
+                                            if (vec.size() > 0)
+                                            {
+                                                for (auto vv : groups.groups)
+                                                {
+                                                    if (vv.is_default == true)
+                                                    {
+                                                        users.users[i].worlds[j].group = vv.name;
+                                                        users.users[i].worlds[j].prefix = vv.prefix;
+                                                        users.users[i].worlds[j].suffix = vv.suffix;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                output.error(utf8_encode(L"[Permissions Ex]: У игрока постоянная группа"));
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/users.yml");
+                            node.reset();
+                            for (auto gr : users.users)
+                                node["users"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/users.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            return;
+                        }
+                        if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
+                        {
+                            Users users;
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                            for (const auto& p : node["users"])
+                                users.users.push_back(p.as<_User>());
+                            for (int i = 0; i < users.users.size(); ++i)
+                            {
+                                if (player.getName() == users.users[i].nickname)
+                                {
+                                    auto vec = split(users.users[i].group, ":");
+                                    if (vec.size() > 0)
+                                    {
+                                        for (auto vv : groups.groups)
+                                        {
+                                            if (vv.is_default == true)
+                                            {
+                                                users.users[i].group = vv.name;
+                                                users.users[i].prefix = vv.prefix;
+                                                users.users[i].suffix = vv.suffix;
+                                                for (int j = 0; j < vv.worlds.size(); ++j)
+                                                {
+                                                    users.users[i].worlds[j].group = vv.worlds[j].group;
+                                                    users.users[i].worlds[j].prefix = vv.worlds[j].prefix;
+                                                    users.users[i].worlds[j].suffix = vv.worlds[j].suffix;
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        output.error(utf8_encode(L"[Permissions Ex]: У игрока постоянная группа"));
+                                        return;
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/users.yml");
+                            node.reset();
+                            for (auto gr : users.users)
+                                node["users"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/users.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            return;
+                        }
+                        else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
+                        {
+                            Users users;
+                            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                            for (const auto& p : node["users"])
+                                users.users.push_back(p.as<_User>());
+                            for (int i = 0; i < users.users.size(); ++i)
+                            {
+                                if (player.getName() == users.users[i].nickname)
+                                {
+                                    for (int j = 0; j < users.users[i].worlds.size(); ++j)
+                                    {
+                                        if (world == users.users[i].worlds[j].name)
+                                        {
+                                            auto vec = split(users.users[i].worlds[j].group, ":");
+                                            if (vec.size() > 0)
+                                            {
+                                                for (auto vv : groups.groups)
+                                                {
+                                                    if (vv.is_default == true)
+                                                    {
+                                                        users.users[i].worlds[j].group = vv.name;
+                                                        users.users[i].worlds[j].prefix = vv.prefix;
+                                                        users.users[i].worlds[j].suffix = vv.suffix;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                output.error(utf8_encode(L"[Permissions Ex]: У игрока постоянная группа"));
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            remove("plugins/Permissions Ex/users.yml");
+                            node.reset();
+                            for (auto gr : users.users)
+                                node["users"].push_back(gr);
+                            ofstream fout("plugins/Permissions Ex/users.yml");
+                            fout << node;
+                            fout.close();
+                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            return;
+                        }
+                        output.error(error_msg);
+                        return;
+                    }
+                  }
+              }
             }
        }
        case Operation::Help:
@@ -3471,6 +4770,10 @@ public:
                goto jxd;
            if (is_remove)
                goto jcc;
+           if (is_timeadd)
+               goto java;
+           if (is_timeremove)
+               goto jar1;
            string dim;
            if (ori.getDimension()->getDimensionId() == 0)
                dim = "OverWorld";
@@ -3536,6 +4839,7 @@ public:
         r->addEnum<Group_Operation>("timed", { { "timed",Group_Operation::Timed } });
         r->addEnum<Group_Operation>("users", { { "users",Group_Operation::Users } });
         r->addEnum<Group_Operation>("user", { { "user",Group_Operation::User } });
+        r->addEnum<Group_Parents_Operation>("set", { { "set",Group_Parents_Operation::Set } });
         r->addEnum<Group_Timed_Operation>("_add", { { "_add",Group_Timed_Operation::Add} });
         r->addEnum<Group_Timed_Operation>("remove", { { "remove",Group_Timed_Operation::Remove } });
         r->addEnum<Group_User_Operation>("_add", { { "_add",Group_User_Operation::Add} });
@@ -3563,15 +4867,14 @@ public:
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "prefix", "prefix").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_prefix, "prefix"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "suffix", "suffix").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_suffix, "suffix"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "create", "create").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_prefix, "prefix"), RegisterCommandHelper::makeMandatory(&Pex::group_suffix, "suffix"), RegisterCommandHelper::makeMandatory(&Pex::is_default, "default"),RegisterCommandHelper::makeOptional(&Pex::parent, "parent"));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_delete", "_delete").addOptions((CommandParameterOption)1));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "prents", "parents").addOptions((CommandParameterOption)1));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_add", "_add",&Pex::is_add).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_delete", "_delete",&Pex::is_delete).addOptions((CommandParameterOption)1));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "prents", "parents").addOptions((CommandParameterOption)1),RegisterCommandHelper::makeOptional<CommandParameterDataType::ENUM>(&Pex::gr_pr_op,"set","set", & Pex::is_parentset).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeOptional(&Pex::parent, "parent"),RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "remove", "remove",&Pex::is_remove).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "timed", "timed").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_tm_op, "_add", "_add").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::lifetime, "lifetime"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "timed", "timed").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_tm_op, "remove", "remove").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "users", "users").addOptions((CommandParameterOption)1));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "user", "user").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_add", "_add").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::player, "user"), RegisterCommandHelper::makeOptional(&Pex::world, "world"), RegisterCommandHelper::makeOptional(&Pex::lifetime, "lifetime"));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "user", "user").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "remove", "remove").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::player, "user"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "timed", "timed").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_tm_op, "_add", "_add",&Pex::is_timeadd).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::lifetime, "lifetime"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "timed", "timed").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_tm_op, "remove", "remove", &Pex::is_timeremove).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "users", "users",&Pex::is_users).addOptions((CommandParameterOption)1));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "user", "user").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_add", "_add",&Pex::is_usradd).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::player, "user"), RegisterCommandHelper::makeOptional(&Pex::lifetime, "lifetime"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "user", "user").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "remove", "remove",&Pex::is_usrremove).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::player, "user"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "worlds", "worlds").addOptions((CommandParameterOption)1));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "world", "world").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "world", "world").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::world, "world"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::world_op, "inherit", "inherit").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::parent_world, "parentWorld"));
@@ -3598,8 +4901,379 @@ bool makeDir(const char* dir)
         return create_directories(dir, ec);
 }
 
+void replaceAll(string& s, const string& search, const string& replace) {
+    for (size_t pos = 0; ; pos += replace.length()) {
+        // Locate the substring to replace
+        pos = s.find(search, pos);
+        if (pos == string::npos) break;
+        // Replace by erasing and inserting
+        s.erase(pos, search.length());
+        s.insert(pos, replace);
+    }
+}
+
 void entry()
 {
+    Event::PlayerPreJoinEvent::subscribe([](const Event::PlayerPreJoinEvent& ev) 
+    {
+            bool is_succ = false;
+            ModifyworldConfig mkb;
+            YAML::Node node123 = YAML::LoadFile("plugins/Permissions Ex/modifyworld.yml");
+            mkb = node123.as<ModifyworldConfig>();
+            if (mkb.whitelist)
+            {
+                ifstream in("plugins/Permissions Ex/whitelist.txt");
+                string nick;
+                auto pl = load_user(ev.mPlayer->getName());
+                auto group = load_group(pl.group);
+                while (getline(in, nick))
+                {
+                    if (ev.mPlayer->getName() == nick)
+                    {
+                        is_succ = true;
+                        break;
+                    }
+                }
+            }
+            if (!is_succ && mkb.whitelist)
+            {
+                auto v = get_msg("whitelist");
+                ev.mPlayer->kick(v);
+                return 0;
+            }
+            Users users;
+            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+            for (const auto& p : node["users"])
+                users.users.push_back(p.as<_User>());
+            bool is_noexits = true;
+            for (int i = 0; i < users.users.size(); ++i)
+            {
+                if (ev.mPlayer->getName() == users.users[i].nickname)
+                {
+                    is_noexits = false;
+                    break;
+                }
+            }
+            if (is_noexits)
+            {
+                _Groups grs;
+                YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                for (const auto& p : node1["groups"])
+                    grs.groups.push_back(p.as<_Group>());
+                _Group def_group;
+                _User user;
+                for (auto v : grs.groups)
+                {
+                    if (v.is_default)
+                    {
+                        def_group = v;
+                        break;
+                    }
+                }
+                user.nickname = ev.mPlayer->getName();
+                user.group = def_group.name;
+                user.prefix = def_group.prefix;
+                user.suffix = def_group.suffix;
+                user.permissions = {};
+                user.worlds = def_group.worlds;
+                users.users.push_back(user);
+                node.reset();
+                for (auto gr : users.users)
+                    node["users"].push_back(gr);
+                remove("plugins/Permissions Ex/users.yml");
+                ofstream fout("plugins/Permissions Ex/users.yml");
+                fout << node;
+                fout.close();
+                ChatConfig cs;
+                YAML::Node node12 = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
+                cs = node12.as<ChatConfig>();
+                if (user.prefix == "")
+                {
+                    replaceAll(cs.display_name_format, "%prefix%", utf8_encode(to_wstring("")));
+                    replaceAll(cs.display_name_format, "%player%", utf8_encode(to_wstring(ev.mPlayer->getName())));
+                    replaceAll(cs.display_name_format, "%suffix%", user.suffix);
+                    ev.mPlayer->setNameTag(cs.display_name_format);
+                }
+                if (user.suffix == "")
+                {
+                    replaceAll(cs.display_name_format, "%prefix%", user.prefix);
+                    replaceAll(cs.display_name_format, "%player%", utf8_encode(to_wstring(ev.mPlayer->getName())));
+                    replaceAll(cs.display_name_format, "%suffix%", utf8_encode(to_wstring("")));
+                    ev.mPlayer->setNameTag(cs.display_name_format);
+                }
+                if (user.prefix == "" && user.suffix == "")
+                {
+                    return 1;
+                }
+                return 1;
+            }
+            if (is_succ)
+            {
+                auto user = load_user(ev.mPlayer->getName());
+                ChatConfig cs;
+                YAML::Node node12 = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
+                cs = node12.as<ChatConfig>();
+                if (user.prefix == "")
+                {
+                    replaceAll(cs.display_name_format, "%prefix%", utf8_encode(to_wstring("")));
+                    replaceAll(cs.display_name_format, "%player%", utf8_encode(to_wstring(ev.mPlayer->getName())));
+                    replaceAll(cs.display_name_format, "%suffix%", user.suffix);
+                    ev.mPlayer->setNameTag(cs.display_name_format);
+                }
+                if (user.suffix == "")
+                {
+                    replaceAll(cs.display_name_format, "%prefix%", user.prefix);
+                    replaceAll(cs.display_name_format, "%player%", utf8_encode(to_wstring(ev.mPlayer->getName())));
+                    replaceAll(cs.display_name_format, "%suffix%", utf8_encode(to_wstring("")));
+                    ev.mPlayer->setNameTag(cs.display_name_format);
+                }
+                if (user.prefix == "" && user.suffix == "")
+                {
+                    return 1;
+                }
+                return 1;
+            }
+            return 1;
+    });
+    Event::PlayerChatEvent::subscribe([](const Event::PlayerChatEvent& ev) 
+    {
+            if (!enabled)
+             return 1;
+            if (!chat_ranged || chat_range == 0)
+            {
+                ChatConfig cs;
+                YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
+                cs = node.as<ChatConfig>();
+                Users users;
+                YAML::Node node23 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                for (const auto& p : node23["users"])
+                    users.users.push_back(p.as<_User>());
+                string res_nick;
+                auto plain = ev.mPlayer->getName();
+                auto x = split(plain, " ");
+                for (int i = 0; i < x.size(); ++i)
+                {
+                    for (auto v : users.users)
+                    {
+                        if (x[i] == v.nickname)
+                        {
+                            res_nick = x[i];
+                            break;
+                        }
+                    }
+                }
+                auto pl = load_user(res_nick);
+                if (pl.prefix == "")
+                {
+                    auto sp = split(cs.global_message_format, "%prefix%");
+                    cs.global_message_format = sp[0] + sp[1];
+                    replaceAll(cs.global_message_format, "%player%", res_nick);
+                    replaceAll(cs.global_message_format, "%suffix%", pl.suffix);
+                    replaceAll(cs.global_message_format, "%message%", ev.mMessage);
+                }
+                if (pl.suffix == "")
+                {
+                    auto sp = split(cs.global_message_format, "%suffix%");
+                    cs.global_message_format = sp[0] + sp[1];
+                    replaceAll(cs.global_message_format, "%prefix%", pl.prefix);
+                    replaceAll(cs.global_message_format, "%player%", res_nick);
+                    replaceAll(cs.global_message_format, "%message%", ev.mMessage);
+                }
+                if (pl.prefix == "" && pl.suffix == "")
+                {
+                    auto sp = split(cs.global_message_format, "%prefix%");
+                    cs.global_message_format = sp[0] + sp[1];
+                    auto sp1 = split(cs.global_message_format, "%suffix%");
+                    cs.global_message_format = sp1[0] + sp1[1];
+                    replaceAll(cs.global_message_format, "%player%", res_nick);
+                    replaceAll(cs.global_message_format, "%message%", ev.mMessage);
+                }
+                regex reg("§");
+                regex reg1("§k");
+                smatch smt, smt1;
+                if (regex_search(ev.mMessage, smt, reg) && regex_search(ev.mMessage, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
+                {
+                    ev.mPlayer->sendText(utf8_encode(L"У вас нет прав использовать цветные сообщения!"));
+                    return 0;
+                }
+                else if (regex_search(ev.mMessage, smt1, reg1) && checkPerm(res_nick, "chatmanager.chat.magic") == false)
+                {
+                    ev.mPlayer->sendText(utf8_encode(L"У вас нет прав использовать волшебный цвет в сообщениях!"));
+                    return 0;
+                }
+                return 1;
+            }
+            else if (chat_ranged && chat_range != 0)
+            {
+                ChatConfig cs;
+                YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
+                cs = node.as<ChatConfig>();
+                Users users;
+                YAML::Node node23 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                for (const auto& p : node23["users"])
+                    users.users.push_back(p.as<_User>());
+                string res_nick;
+                auto plain = ev.mPlayer->getName();
+                auto x = split(plain, " ");
+                for (int i = 0; i < x.size(); ++i)
+                {
+                    for (auto v : users.users)
+                    {
+                        if (x[i] == v.nickname)
+                        {
+                            res_nick = x[i];
+                            break;
+                        }
+                    }
+                }
+                auto pl123 = load_user(res_nick);
+                auto players = Level::getAllPlayers();
+                regex reg("§");
+                regex reg1("§k");
+                smatch smt, smt1;
+                if (ev.mMessage[0] != '!' && checkPerm(res_nick,"chatmanager.override.ranged") == false)
+                {
+                    for (auto p : players)
+                    {
+                        double x1 = ev.mPlayer->getPos().x, y1 = ev.mPlayer->getPos().y, z1 = ev.mPlayer->getPos().z, x2 = p->getPos().x, y2 = p->getPos().y, z2 = p->getPos().z;
+                        double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) + pow(z2 - z1, 2));
+                        if (distance <= cs.chat_range)
+                        {
+                            if (pl123.prefix == "")
+                            {
+                                auto sp = split(cs.message_format, "%prefix%");
+                                cs.message_format = sp[0] + sp[1];
+                                replaceAll(cs.message_format, "%player%", res_nick);
+                                replaceAll(cs.message_format, "%suffix%", pl123.suffix);
+                                replaceAll(cs.message_format, "%message%", ev.mMessage);
+                            }
+                            if (pl123.suffix == "")
+                            {
+                                auto sp = split(cs.message_format, "%suffix%");
+                                cs.message_format = sp[0] + sp[1];
+                                replaceAll(cs.message_format, "%prefix%", pl123.prefix);
+                                replaceAll(cs.message_format, "%player%", res_nick);
+                                replaceAll(cs.message_format, "%message%", ev.mMessage);
+                            }
+                            if (pl123.prefix == "" && pl123.suffix == "")
+                            {
+                                auto sp = split(cs.message_format, "%prefix%");
+                                cs.message_format = sp[0] + sp[1];
+                                auto sp1 = split(cs.message_format, "%suffix%");
+                                cs.message_format = sp1[0] + sp1[1];
+                                replaceAll(cs.message_format, "%player%", res_nick);
+                                replaceAll(cs.message_format, "%message%", ev.mMessage);
+                            }
+                            if (pl123.prefix != "" && pl123.suffix != "")
+                            {
+                                replaceAll(cs.message_format, "%prefix%", pl123.prefix);
+                                replaceAll(cs.message_format, "%player%", res_nick);
+                                replaceAll(cs.message_format, "%suffix%", pl123.suffix);
+                                replaceAll(cs.message_format, "%message%", ev.mMessage);
+                            }
+                            if (regex_search(ev.mMessage, smt, reg) && regex_search(ev.mMessage, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
+                            {
+                                ev.mPlayer->sendText(utf8_encode(L"У вас нет прав использовать цветные сообщения!"));
+                                return 0;
+                            }
+                            else if (regex_search(ev.mMessage, smt1, reg1) && checkPerm(res_nick, "chatmanager.chat.magic") == false)
+                            {
+                                ev.mPlayer->sendText(utf8_encode(L"У вас нет прав использовать волшебный цвет в сообщениях!"));
+                                return 0;
+                            }
+                            (ServerPlayer*)p->sendText(utf8_encode(to_wstring("[§eL§r] ")) + cs.message_format);
+                            return 0;
+                        }
+                    }
+                    return 0;
+                }
+                else if (ev.mMessage[0] == '!' && (checkPerm(res_nick, "chatmanager.chat.global") == true || checkPerm(res_nick, "chatmanager.override.ranged") == true))
+                {
+                    auto msg = string(ev.mMessage.begin()+1, ev.mMessage.end());
+                    for (auto p : players)
+                    {
+                        if (pl123.prefix == "")
+                        {
+                            auto sp = split(cs.global_message_format, "%prefix%");
+                            cs.global_message_format = sp[0] + sp[1];
+                            replaceAll(cs.global_message_format, "%player%", res_nick);
+                            replaceAll(cs.global_message_format, "%suffix%", pl123.suffix);
+                            replaceAll(cs.global_message_format, "%message%", ev.mMessage);
+                        }
+                        if (pl123.suffix == "")
+                        {
+                            auto sp = split(cs.global_message_format, "%suffix%");
+                            cs.global_message_format = sp[0] + sp[1];
+                            replaceAll(cs.global_message_format, "%prefix%", pl123.prefix);
+                            replaceAll(cs.global_message_format, "%player%", res_nick);
+                            replaceAll(cs.global_message_format, "%message%",msg);
+                        }
+                        if (pl123.prefix == "" && pl123.suffix == "")
+                        {
+                            auto sp = split(cs.global_message_format, "%prefix%");
+                            cs.global_message_format = sp[0] + sp[1];
+                            auto sp1 = split(cs.global_message_format, "%suffix%");
+                            cs.global_message_format = sp1[0] + sp1[1];
+                            replaceAll(cs.global_message_format, "%player%", res_nick);
+                            replaceAll(cs.global_message_format, "%message%", msg);
+                        }
+                        if (pl123.prefix != "" && pl123.suffix != "")
+                        {
+                            replaceAll(cs.global_message_format, "%prefix%",pl123.prefix);
+                            replaceAll(cs.global_message_format, "%player%", res_nick);
+                            replaceAll(cs.global_message_format, "%suffix%", pl123.suffix);
+                            replaceAll(cs.global_message_format, "%message%", msg);
+                        }
+                        if (regex_search(msg, smt, reg) && regex_search(msg, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
+                        {
+                            ev.mPlayer->sendText(utf8_encode(L"У вас нет прав использовать цветные сообщения!"));
+                            return 0;
+                        }
+                        else if (regex_search(msg, smt1, reg1) && checkPerm(res_nick, "chatmanager.chat.magic") == false)
+                        {
+                            ev.mPlayer->sendText(utf8_encode(L"У вас нет прав использовать волшебный цвет в сообщениях!"));
+                            return 0;
+                        }
+                        ev.mPlayer->sendText(utf8_encode(to_wstring("[§aG§r] ")) + cs.global_message_format);
+                        return 0;
+                    }
+                }
+                else if (ev.mMessage[0] == '!' && checkPerm(res_nick, "chatmanager.chat.global") == false)
+                {
+                    ev.mPlayer->sendText(utf8_encode(L"У вас недостаточно прав для отправки сообщений в глобальный чат!"));
+                    return 0;
+                }
+            }
+    });
+    Event::PlayerCmdEvent::subscribe([](const Event::PlayerCmdEvent& ev) 
+    {
+            if (debug_mode)
+            {
+                ofstream fout("server.log", ios_base::app);
+                Users users;
+                YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                for (const auto& p : node["users"])
+                    users.users.push_back(p.as<_User>());
+                string res_nick;
+                auto plain = ev.mPlayer->getName();
+                auto x = split(plain, " ");
+                for (int i = 0; i < x.size(); ++i)
+                {
+                    for (auto v : users.users)
+                    {
+                        if (x[i] == v.nickname)
+                        {
+                            res_nick = x[i];
+                            break;
+                        }
+                    }
+                }
+                fout << "[" + currentDateTime() + "]: Игрок " + res_nick + " использовал команду " + ev.mCommand + "\n";
+                fout.close();
+                return 1;
+            }
+            return 1;
+    });
     makeDir("plugins/Permissions Ex");
     Event::ServerStartedEvent::subscribe([](const Event::ServerStartedEvent& ev)
         {
