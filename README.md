@@ -73,6 +73,4 @@
 <p>/pex world [world] ✔</p>
 <p>/pex world [world] inherint [parentWorld] ✔</p>
 <p>/pex default group [group] [world] ✔</p>
-<p></p>
-</p></p>
-</p>Test</p>
+<h1>Функционал</h1>
