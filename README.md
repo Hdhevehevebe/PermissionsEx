@@ -2,7 +2,7 @@
 <p>Почти полноценный порт PermissionsEx с Bukkit на LiteLoader(WIP).</p>
 <p>Almost a full-fledged port of PermissionsEx from Bukkit to LiteLoader(WIP).</p>
 <p></p>
-<p>Permissions Ex команды:</p>
+<h1>Permissions Ex команды:</h1>
 <p>/pex help ✔</p>
 <p>/pex toggle debug ✔</p>
 <p>/pex reload ✔</p>
