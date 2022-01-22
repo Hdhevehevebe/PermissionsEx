@@ -128,18 +128,19 @@ public:
     string group;
     string prefix;
     string suffix;
-    string inheritance;
+   vector<string> inheritances;
 };
 
 class _Group
 {
 public:
-    string         name; //имя группы
-    string         prefix;
+    string name; //имя группы
+    string prefix;
     string suffix;
     vector<string> perms;       //права
-    bool           is_default;  //установлен ли по умолчанию
-    string         inheritance; //группу,которую будем наследовать
+    bool is_default;  //установлен ли по умолчанию
+    bool build; //строительство вкл/выкл
+    vector<string> inheritances; //группу,которую будем наследовать
     vector<World> worlds; 
 };
 
@@ -153,7 +154,7 @@ public:
     string nickname; //ник
     string prefix;
     string suffix;
-    string         group;       //группа игрока
+    vector<string> groups;       //группа игрока
     vector<string> permissions; //права игрока
     vector<World> worlds;
 };
@@ -238,7 +239,11 @@ namespace YAML
             node[rhs.name]["group"] = rhs.group;
             node[rhs.name]["prefix"] = rhs.prefix;
             node[rhs.name]["suffix"] = rhs.suffix;
-            node[rhs.name]["inheritance"] = rhs.inheritance;
+            if (rhs.inheritances.size() == 0)
+            {
+                node[rhs.name]["inheritance"] = {};
+            }
+            node[rhs.name]["inheritance"] = rhs.inheritances;
             return node;
         }
         static bool decode(const Node& node, World& rhs)
@@ -258,7 +263,7 @@ namespace YAML
             rhs.group = node[name]["group"].as<string>();
             rhs.prefix = node[name]["prefix"].as<string>();
             rhs.suffix = node[name]["suffix"].as<string>();
-            rhs.inheritance = node[name]["inheritance"].as<string>();
+            rhs.inheritances = node[name]["inheritance"].as<vector<string>>();
             return true;
         }
     };
@@ -275,8 +280,13 @@ namespace YAML
             node[rhs.name] = YAML::Node(YAML::NodeType::Map);
             node[rhs.name]["prefix"] = rhs.prefix;
             node[rhs.name]["suffix"] = rhs.suffix;
-            node[rhs.name]["inheritance"] = rhs.inheritance;
+            if (rhs.inheritances.size() == 0)
+            {
+                node[rhs.name]["inheritance"] = {};
+            }
+            node[rhs.name]["inheritance"] = rhs.inheritances;
             node[rhs.name]["default"] = rhs.is_default;
+            node[rhs.name]["build"] = rhs.build;
             if (rhs.perms.size() == 0)
             {
                 node[rhs.name]["permissions"] = vector<string>(0);
@@ -297,7 +307,11 @@ namespace YAML
                 }
                 node[rhs.name]["worlds"][v.name]["permissions"] = v.permissions;
                 node[rhs.name]["worlds"][v.name]["group"] = v.group;
-                node[rhs.name]["worlds"][v.name]["inheritance"] = v.inheritance;
+                if (v.inheritances.size() == 0)
+                {
+                    node[rhs.name]["worlds"][v.name]["inheritance"] = vector<string>(0);
+                }
+                node[rhs.name]["worlds"][v.name]["inheritance"] = v.inheritances;
             }
             return node;
         }
@@ -317,8 +331,9 @@ namespace YAML
             rhs.name = name;
             rhs.prefix = node[name]["prefix"].as<std::string>();
             rhs.suffix = node[name]["suffix"].as<std::string>();
-            rhs.inheritance = node[name]["inheritance"].as<std::string>();
+            rhs.inheritances = node[name]["inheritance"].as<std::vector<string>>();
             rhs.is_default = node[name]["default"].as<bool>();
+            rhs.build = node[name]["build"].as<bool>();
             rhs.perms = node[name]["permissions"].as<std::vector<string>>();
             string name1;
             for (const auto& kv : node[name]["worlds"])
@@ -334,7 +349,7 @@ namespace YAML
                 world.suffix = node[name]["worlds"][name1]["suffix"].as<string>();
                 world.permissions = node[name]["worlds"][name1]["permissions"].as<vector<string>>();
                 world.group = node[name]["worlds"][name1]["group"].as<string>();
-                world.inheritance = node[name]["worlds"][name1]["inheritance"].as<string>();
+                world.inheritances = node[name]["worlds"][name1]["inheritance"].as<vector<string>>();
                 rhs.worlds.push_back(world);
             }
             return true;
@@ -351,7 +366,7 @@ namespace YAML
         {
             Node node;
             node[rhs.nickname] = YAML::Node(YAML::NodeType::Map);
-            node[rhs.nickname]["group"] = (rhs.group);
+            node[rhs.nickname]["group"] = (rhs.groups);
             node[rhs.nickname]["prefix"] = (rhs.prefix);
             node[rhs.nickname]["suffix"] = (rhs.suffix);
             if (rhs.permissions.size() == 0)
@@ -374,7 +389,7 @@ namespace YAML
                 }
                 node[rhs.nickname]["worlds"][v.name]["permissions"] = v.permissions;
                 node[rhs.nickname]["worlds"][v.name]["group"] = v.group;
-                node[rhs.nickname]["worlds"][v.name]["inheritance"] = v.inheritance;
+                node[rhs.nickname]["worlds"][v.name]["inheritance"] = v.inheritances;
             }
             return node;
         }
@@ -391,7 +406,7 @@ namespace YAML
                 break;
             }
             rhs.nickname = name;
-            rhs.group = node[name]["group"].as<string>();
+            rhs.groups = node[name]["group"].as<vector<string>>();
             rhs.prefix = node[name]["prefix"].as<string>();
             rhs.suffix = node[name]["suffix"].as<string>();
             rhs.permissions = node[name]["permissions"].as<vector<string>>();
@@ -409,7 +424,7 @@ namespace YAML
                 world.suffix = node[name]["worlds"][name1]["suffix"].as<string>();
                 world.permissions = node[name]["worlds"][name1]["permissions"].as<vector<string>>();
                 world.group = node[name]["worlds"][name1]["group"].as<string>();
-                world.inheritance = node[name]["worlds"][name1]["inheritance"].as<string>();
+                world.inheritances = node[name]["worlds"][name1]["inheritance"].as<vector<string>>();
                 rhs.worlds.push_back(world);
             }
             return true;
@@ -512,26 +527,29 @@ bool checkPerm(string pl, string perm)
         }
         auto pl1 = load_user(res_nick);
         _Group gr;
-        auto l = split(pl1.group, ":");
-        if (l.size() > 0)
-            gr = load_group(l[0]);
-        else
-            gr = load_group(pl1.group);
-        for (auto v : pl1.permissions)
+        for (auto xh : pl1.groups)
         {
-            if (v == perm)
+            auto l = split(xh, ":");
+            if (l.size() > 0)
+                gr = load_group(l[0]);
+            else
+                gr = load_group(xh);
+            for (auto v : pl1.permissions)
             {
-                return 1;
+                if (v == perm)
+                {
+                    return 1;
+                }
+            }
+            for (auto v : gr.perms)
+            {
+                if (v == perm)
+                {
+                    return 1;
+                }
             }
         }
-        for (auto v : gr.perms)
-        {
-            if (v == perm)
-            {
-                return 1;
-            }
-        }
-   }
+    }
     catch (exception& e)
     {
         cerr << e.what() << endl;
@@ -570,102 +588,105 @@ bool checkPermWorlds(string pl, string perm,string world)
     }
     auto pl1 = load_user(res_nick);
     _Group gr;
-    auto l = split(pl1.group, ":");
-    if (l.size() > 0)
-        gr = load_group(l[0]);
-    else
-        gr = load_group(pl1.group);
-    if (world == "OverWorld")
+    for (auto xh : pl1.groups)
     {
-        for (auto dim : pl1.worlds)
+        auto l = split(xh, ":");
+        if (l.size() > 0)
+            gr = load_group(l[0]);
+        else
+            gr = load_group(xh);
+        if (world == "OverWorld")
         {
-            if (dim.name == "OverWorld")
+            for (auto dim : pl1.worlds)
             {
-                for (auto v : dim.permissions)
+                if (dim.name == "OverWorld")
                 {
-                    if (v == perm)
+                    for (auto v : dim.permissions)
                     {
-                        return 1;
+                        if (v == perm)
+                        {
+                            return 1;
+                        }
                     }
                 }
             }
         }
-    }
-    else if (world == "Nether")
-    {
-        for (auto dim : pl1.worlds)
+        else if (world == "Nether")
         {
-            if (dim.name == "Nether")
+            for (auto dim : pl1.worlds)
             {
-                for (auto v : dim.permissions)
+                if (dim.name == "Nether")
                 {
-                    if (v == perm)
+                    for (auto v : dim.permissions)
                     {
-                        return 1;
+                        if (v == perm)
+                        {
+                            return 1;
+                        }
                     }
                 }
             }
         }
-    }
-    else if (world == "End")
-    {
-        for (auto dim : pl1.worlds)
+        else if (world == "End")
         {
-            if (dim.name == "End")
+            for (auto dim : pl1.worlds)
             {
-                for (auto v : dim.permissions)
+                if (dim.name == "End")
                 {
-                    if (v == perm)
+                    for (auto v : dim.permissions)
                     {
-                        return 1;
+                        if (v == perm)
+                        {
+                            return 1;
+                        }
                     }
                 }
             }
         }
-    }
-    if (world == "OverWorld")
-    {
-        for (auto dim : gr.worlds)
+        if (world == "OverWorld")
         {
-            if (dim.name == "OverWorld")
+            for (auto dim : gr.worlds)
             {
-                for (auto v : dim.permissions)
+                if (dim.name == "OverWorld")
                 {
-                    if (v == perm)
+                    for (auto v : dim.permissions)
                     {
-                        return 1;
+                        if (v == perm)
+                        {
+                            return 1;
+                        }
                     }
                 }
             }
         }
-    }
-    else if (world == "Nether")
-    {
-        for (auto dim : gr.worlds)
+        else if (world == "Nether")
         {
-            if (dim.name == "Nether")
+            for (auto dim : gr.worlds)
             {
-                for (auto v : dim.permissions)
+                if (dim.name == "Nether")
                 {
-                    if (v == perm)
+                    for (auto v : dim.permissions)
                     {
-                        return 1;
+                        if (v == perm)
+                        {
+                            return 1;
+                        }
                     }
                 }
             }
         }
-    }
-    else if (world == "End")
-    {
-        for (auto dim : gr.worlds)
+        else if (world == "End")
         {
-            if (dim.name == "End")
+            for (auto dim : gr.worlds)
             {
-                for (auto v : dim.permissions)
+                if (dim.name == "End")
                 {
-                    if (v == perm)
+                    for (auto v : dim.permissions)
                     {
-                        return 1;
+                        if (v == perm)
+                        {
+                            return 1;
+                        }
                     }
                 }
             }
@@ -786,7 +807,8 @@ class Pex : public Command
     bool is_list,is_add,is_remove,is_delete;
     string opval,opval1,opval2,opval3;
     bool is_parentset;
-    bool is_timeadd, is_timeremove,is_users,is_usradd,is_usrremove;
+    bool is_setdefgroup;
+    bool is_timeadd, is_timeremove,is_users,is_usradd,is_usrremove,is_inherit,is_defgr;
 public:
     void execute(CommandOrigin const& ori, CommandOutput& output) const override
     {
@@ -921,7 +943,7 @@ public:
                {
                    groups.groups.push_back(p.as<_Group>());
                }
-               string outp = "[Permissions Ex]:" ;
+               string outp = "[Permissions Ex]: Иерархия групп: \n" ;
                for (auto v : groups.groups)
                {
                    outp += "- " + v.name + "\n";
@@ -937,7 +959,7 @@ public:
                {
                    groups.groups.push_back(p.as<_Group>());
                }
-               string outp = "[Permissions Ex]: ";
+               string outp = "[Permissions Ex]: Иерархия групп: \n";
                for (auto v : groups.groups)
                {
                    outp += "- " + v.name + "\n";
@@ -1900,7 +1922,7 @@ public:
                                      {
                                          if (lifetime == 0)
                                          {
-                                             users.users[i].group = opval + ":0";
+                                             users.users[i].groups.push_back(opval + ":0");
                                              auto gr = load_group(opval);
                                              users.users[i].prefix = gr.prefix;
                                              users.users[i].suffix = gr.suffix;
@@ -1912,7 +1934,7 @@ public:
                                          }
                                          else
                                          {
-                                             users.users[i].group = opval + ":" + to_string(lifetime);
+                                             users.users[i].groups.push_back(opval + ":" + to_string(lifetime));
                                              auto gr = load_group(opval);
                                              users.users[i].prefix = gr.prefix;
                                              users.users[i].suffix = gr.suffix;
@@ -1996,7 +2018,7 @@ public:
                                      {
                                          if (lifetime == 0)
                                          {
-                                             users.users[i].group = opval + ":0";
+                                             users.users[i].groups.push_back(opval + ":0");
                                              auto gr = load_group(opval);
                                              users.users[i].prefix = gr.prefix;
                                              users.users[i].suffix = gr.suffix;
@@ -2008,7 +2030,7 @@ public:
                                          }
                                          else
                                          {
-                                             users.users[i].group = opval + ":" + to_string(lifetime);
+                                             users.users[i].groups.push_back(opval + ":" + to_string(lifetime));
                                              auto gr = load_group(opval);
                                              users.users[i].prefix = gr.prefix;
                                              users.users[i].suffix = gr.suffix;
@@ -2273,20 +2295,34 @@ public:
                                  {
                                      if (player.getName() == users.users[i].nickname)
                                      {
-                                         for (auto vv : groups.groups)
+                                         for (int j = 0; j < users.users[i].groups.size(); ++j)
                                          {
-                                             if (vv.is_default == true)
+                                             if (opval1 == users.users[i].groups[j])
                                              {
-                                                 users.users[i].group = vv.name;
-                                                 users.users[i].prefix = vv.prefix;
-                                                 users.users[i].suffix = vv.suffix;
-                                                 for (int j = 0; j < vv.worlds.size(); ++j)
+                                                 auto sz = users.users[i].groups.size();
+                                                 users.users[i].groups.erase(users.users[i].groups.begin() + j, users.users[i].groups.begin() + j);
+                                                 users.users[i].groups.resize(sz - 1);
+                                                 if (users.users[i].groups.size() == 0)
                                                  {
-                                                     users.users[i].worlds[j].group = vv.worlds[j].group;
-                                                     users.users[i].worlds[j].prefix = vv.worlds[j].prefix;
-                                                     users.users[i].worlds[j].suffix = vv.worlds[j].suffix;
+                                                     for (auto vv : groups.groups)
+                                                     {
+                                                         if (vv.is_default == true)
+                                                         {
+                                                             users.users[i].groups.push_back(vv.name);
+                                                             users.users[i].prefix = vv.prefix;
+                                                             users.users[i].suffix = vv.suffix;
+                                                             break;
+                                                         }
+                                                     }
+                                                     break;
                                                  }
-                                                 break;
+                                                 else
+                                                 {
+                                                     auto def = load_group(users.users[i].groups[users.users[i].groups.size() - 1]);
+                                                     users.users[i].prefix = def.prefix;
+                                                     users.users[i].suffix = def.suffix;
+                                                     break;
+                                                 }
                                              }
                                          }
                                      }
@@ -2353,20 +2389,34 @@ public:
                                  {
                                      if (player.getName() == users.users[i].nickname)
                                      {
-                                         for (auto vv : groups.groups)
+                                         for (int j = 0; j < users.users[i].groups.size(); ++j)
                                          {
-                                             if (vv.is_default == true)
+                                             if (opval1 == users.users[i].groups[j])
                                              {
-                                                 users.users[i].group = vv.name;
-                                                 users.users[i].prefix = vv.prefix;
-                                                 users.users[i].suffix = vv.suffix;
-                                                 for (int j = 0; j < vv.worlds.size(); ++j)
+                                                 auto sz = users.users[i].groups.size();
+                                                 users.users[i].groups.erase(users.users[i].groups.begin() + j, users.users[i].groups.begin() + j);
+                                                 users.users[i].groups.resize(sz - 1);
+                                                 if (users.users[i].groups.size() == 0)
                                                  {
-                                                     users.users[i].worlds[j].group = vv.worlds[j].group;
-                                                     users.users[i].worlds[j].prefix = vv.worlds[j].prefix;
-                                                     users.users[i].worlds[j].suffix = vv.worlds[j].suffix;
+                                                     for (auto vv : groups.groups)
+                                                     {
+                                                         if (vv.is_default == true)
+                                                         {
+                                                             users.users[i].groups.push_back(vv.name);
+                                                             users.users[i].prefix = vv.prefix;
+                                                             users.users[i].suffix = vv.suffix;
+                                                             break;
+                                                         }
+                                                     }
+                                                     break;
                                                  }
-                                                 break;
+                                                 else
+                                                 {
+                                                     auto def = load_group(users.users[i].groups[users.users[i].groups.size() - 1]);
+                                                     users.users[i].prefix = def.prefix;
+                                                     users.users[i].suffix = def.suffix;
+                                                     break;
+                                                 }
                                              }
                                          }
                                      }
@@ -2616,7 +2666,7 @@ public:
                                  if (player.getName() == users.users[i].nickname)
                                  {
                                      auto gr = load_group(opval2);
-                                     users.users[i].group = opval2;
+                                     users.users[i].groups.push_back(opval2);
                                      users.users[i].prefix = gr.prefix;
                                      users.users[i].suffix = gr.suffix;
                                      for (int j = 0; j < gr.worlds.size(); ++j)
@@ -2649,18 +2699,16 @@ public:
                              {
                                  if (player.getName() == users.users[i].nickname)
                                  {
-                                     for (int j = 0; j < users.users[i].permissions.size(); ++j)
+                                     auto gr = load_group(opval2);
+                                     users.users[i].groups.push_back(opval2);
+                                     users.users[i].prefix = gr.prefix;
+                                     users.users[i].suffix = gr.suffix;
+                                     for (int j = 0; j < gr.worlds.size(); ++j)
                                      {
-                                         regex r(user_permission);
-                                         smatch sm;
-                                         if (regex_search(users.users[i].permissions[j], sm, r))
-                                         {
-                                             auto sz = users.users[i].permissions.size();
-                                             users.users[i].permissions.erase(users.users[i].permissions.begin() + i, users.users[i].permissions.begin() + i);
-                                             users.users[i].permissions.resize(sz - 1);
-                                             break;
-                                         }
+                                         users.users[i].worlds[j].prefix = gr.worlds[j].prefix;
+                                         users.users[i].worlds[j].suffix = gr.worlds[j].suffix;
                                      }
+                                     break;
                                  }
                              }
                              remove("plugins/Permissions Ex/users.yml");
@@ -2778,14 +2826,20 @@ public:
                                  if (player.getName() == us.nickname)
                                  {
                                      string outp;
-                                     auto gr = load_group(us.group);
-                                     outp += "- " + gr.name + "\n";
-                                     if (gr.inheritance != "")
+                                     for (auto g : us.groups)
                                      {
-                                         while (!gr.is_default)
+                                         auto gr = load_group(g);
+                                         outp += "- " + gr.name + "\n";
+                                         for (auto inh : gr.inheritances)
                                          {
-                                             gr = load_group(gr.inheritance);
-                                             outp += "- " + gr.name + "\n";
+                                             if (inh != "")
+                                             {
+                                                 while (!gr.is_default)
+                                                 {
+                                                     gr = load_group(inh);
+                                                     outp += "- " + gr.name + "\n";
+                                                 }
+                                             }
                                          }
                                      }
                                      wstring out_msg = L"[Permissions Ex]: " + to_wstring(outp);
@@ -2807,14 +2861,20 @@ public:
                                  if (player.getName() == us.nickname)
                                  {
                                      string outp;
-                                     auto gr = load_group(us.group);
-                                     outp += "- " + gr.name + "\n";
-                                     if (gr.inheritance != "")
+                                     for (auto g : us.groups)
                                      {
-                                         while (!gr.is_default)
+                                         auto gr = load_group(g);
+                                         outp += "- " + gr.name + "\n";
+                                         for (auto inh : gr.inheritances)
                                          {
-                                             gr = load_group(gr.inheritance);
-                                             outp += "- " + gr.name + "\n";
+                                             if (inh != "")
+                                             {
+                                                 while (!gr.is_default)
+                                                 {
+                                                     gr = load_group(inh);
+                                                     outp += "- " + gr.name + "\n";
+                                                 }
+                                             }
                                          }
                                      }
                                      wstring out_msg = L"[Permissions Ex]: " + to_wstring(outp);
@@ -2842,12 +2902,15 @@ public:
                                              string outp;
                                              auto gr = load_group(us.worlds[j].group);
                                              outp += "- " + gr.name + "\n";
-                                             if (gr.inheritance != "")
+                                             for (auto inh : gr.inheritances)
                                              {
-                                                 while (!gr.is_default || gr.inheritance == "")
+                                                 if (inh != "")
                                                  {
-                                                     gr = load_group(gr.worlds[j].inheritance);
-                                                     outp += "- " + gr.worlds[j].name + "\n";
+                                                     while (!gr.is_default)
+                                                     {
+                                                         gr = load_group(inh);
+                                                         outp += "- " + gr.name + "\n";
+                                                     }
                                                  }
                                              }
                                              wstring out_msg = L"[Permissions Ex]: " + to_wstring(outp);
@@ -2877,12 +2940,15 @@ public:
                                              string outp;
                                              auto gr = load_group(us.worlds[j].group);
                                              outp += "- " + gr.name + "\n";
-                                             if (gr.inheritance != "")
+                                             for (auto inh : gr.inheritances)
                                              {
-                                                 while (!gr.is_default || gr.inheritance == "")
+                                                 if (inh != "")
                                                  {
-                                                     gr = load_group(gr.worlds[j].inheritance);
-                                                     outp += "- " + gr.worlds[j].name + "\n";
+                                                     while (!gr.is_default)
+                                                     {
+                                                         gr = load_group(inh);
+                                                         outp += "- " + gr.name + "\n";
+                                                     }
                                                  }
                                              }
                                              wstring out_msg = L"[Permissions Ex]: " + to_wstring(outp);
@@ -3289,7 +3355,18 @@ public:
                           gr.is_default = is_default;
                       }
                       gr.perms = {};
-                      gr.inheritance = parent;
+                      auto spp = split(parent, ":");
+                      if (spp.size() == 0)
+                      {
+                          gr.inheritances.push_back(parent);
+                      }
+                      else
+                      {
+                          for (auto xxl : spp)
+                          {
+                              gr.inheritances.push_back(xxl);
+                          }
+                      }
                       World overworld;
                       overworld.name = "OverWorld";
                       World nether;
@@ -3334,7 +3411,18 @@ public:
                           gr.is_default = is_default;
                       }
                       gr.perms = {};
-                      gr.inheritance = parent;
+                      auto spp = split(parent, ":");
+                      if (spp.size() == 0)
+                      {
+                          gr.inheritances.push_back(parent);
+                      }
+                      else
+                      {
+                          for (auto xxl : spp)
+                          {
+                              gr.inheritances.push_back(xxl);
+                          }
+                      }
                       World overworld;
                       overworld.name = "OverWorld";
                       World nether;
@@ -3666,6 +3754,10 @@ public:
                       dim = "End";
                   string error_msg = get_msg("permissionDenied"), error_msg1 = get_msg("invalidArgument");
                   string perm = "permissions.manage.groups.remove." + group;
+                  if (is_add)
+                  {
+                      goto jxd;
+                  }
                   if (group == "")
                   {
                       output.error(error_msg1);
@@ -3690,17 +3782,17 @@ public:
                               groups.groups.resize(sz - 1);
                               for (int j = 0; j < users.users.size(); ++j)
                               {
-                                  if (users.users[j].group == group)
+                                  for (int jj = 0; jj < users.users[j].groups.size(); ++jj)
                                   {
-                                      for (int i1 = 0; i1 < groups.groups.size(); ++i1)
+                                      if (users.users[j].groups[jj] == group)
                                       {
-                                          if (groups.groups[i1].is_default)
-                                          {
-                                              users.users[j].group = groups.groups[i1].name;
-                                              users.users[j].prefix = groups.groups[i1].prefix;
-                                              users.users[j].suffix = groups.groups[i1].suffix;
-                                              break;
-                                          }
+                                          auto sz = users.users[j].groups.size();
+                                          users.users[j].groups.erase(users.users[j].groups.begin() + jj, users.users[j].groups.begin() + jj);
+                                          users.users[j].groups.resize(sz - 1);
+                                          auto gro = load_group(users.users[j].groups[(users.users[j].groups.size() - 1)]);
+                                          users.users[j].prefix = gro.prefix;
+                                          users.users[j].suffix = gro.suffix;
+                                          break;
                                       }
                                   }
                                   for (int j11 = 0; j11 < users.users[j].worlds.size(); ++j11)
@@ -3759,17 +3851,17 @@ public:
                               groups.groups.resize(sz - 1);
                               for (int j = 0; j < users.users.size(); ++j)
                               {
-                                  if (users.users[j].group == group)
+                                  for (int jj = 0; jj < users.users[j].groups.size(); ++jj)
                                   {
-                                      for (int i1 = 0; i1 < groups.groups.size(); ++i1)
+                                      if (users.users[j].groups[jj] == group)
                                       {
-                                          if (groups.groups[i1].is_default)
-                                          {
-                                              users.users[j].group = groups.groups[i1].name;
-                                              users.users[j].prefix = groups.groups[i1].prefix;
-                                              users.users[j].suffix = groups.groups[i1].suffix;
-                                              break;
-                                          }
+                                          auto sz = users.users[j].groups.size();
+                                          users.users[j].groups.erase(users.users[j].groups.begin() + jj, users.users[j].groups.begin() + jj);
+                                          users.users[j].groups.resize(sz - 1);
+                                          auto gro = load_group(users.users[j].groups[(users.users[j].groups.size() - 1)]);
+                                          users.users[j].prefix = gro.prefix;
+                                          users.users[j].suffix = gro.suffix;
+                                          break;
                                       }
                                   }
                                   for (int j11 = 0; j11 < users.users[j].worlds.size(); ++j11)
@@ -3819,6 +3911,8 @@ public:
                       goto jet;
                   if (is_usrremove)
                       goto jex1;
+                  if (is_remove)
+                      goto jcc;
                   string dim;
                   if (ori.getDimension()->getDimensionId() == 0)
                       dim = "OverWorld";
@@ -3840,17 +3934,25 @@ public:
                           wstring outp = L"[Permissions Ex]: Список родительских групп\n";
                           auto gr = load_group(group);
                           _Group gr1;
-                          if (gr.inheritance != "")
-                              gr1 = load_group(gr.inheritance);
-                          else
+                          if (gr.inheritances.size() != 0)
                           {
-                              output.success(utf8_encode(outp));
-                              return;
-                          }
-                          outp += to_wstring(gr1.name);
-                          while (!gr1.is_default || gr1.inheritance != "")
-                          {
-                              outp += L"- " + to_wstring(gr.name) + L"\n";
+                              for (auto xh : gr.inheritances)
+                              {
+                                  if (xh != "")
+                                  {
+                                      gr1 = load_group(xh);
+                                  }
+                                  else
+                                  {
+                                      output.success(utf8_encode(outp));
+                                      return;
+                                  }
+                                  outp += to_wstring(gr1.name);
+                                  while (!gr1.is_default)
+                                  {
+                                      outp += L"- " + to_wstring(gr.name) + L"\n";
+                                  }
+                              }
                           }
                           output.success(utf8_encode(outp));
                           return;
@@ -3862,17 +3964,25 @@ public:
                           _Group gr1;
                           for (auto worl : gr.worlds)
                           {
-                              if (worl.inheritance != "")
-                                  gr1 = load_group(worl.inheritance);
-                              else
+                              if (worl.inheritances.size() != 0)
                               {
-                                  output.success(utf8_encode(outp));
-                                  return;
-                              }
-                              outp += to_wstring(gr1.name);
-                              while (!gr1.is_default || gr1.inheritance != "")
-                              {
-                                  outp += L"- " + to_wstring(gr.name) + L"\n";
+                                  for (auto xh : worl.inheritances)
+                                  {
+                                      if (xh != "")
+                                      {
+                                          gr1 = load_group(xh);
+                                      }
+                                      else
+                                      {
+                                          output.success(utf8_encode(outp));
+                                          return;
+                                      }
+                                      outp += to_wstring(gr1.name);
+                                      while (!gr1.is_default)
+                                      {
+                                          outp += L"- " + to_wstring(gr.name) + L"\n";
+                                      }
+                                  }
                               }
                               output.success(utf8_encode(outp));
                               return;
@@ -3885,17 +3995,25 @@ public:
                           wstring outp = L"[Permissions Ex]: Список родительских групп\n";
                           auto gr = load_group(group);
                           _Group gr1;
-                          if (gr.inheritance != "")
-                              gr1 = load_group(gr.inheritance);
-                          else
+                          if (gr.inheritances.size() != 0)
                           {
-                              output.success(utf8_encode(outp));
-                              return;
-                          }
-                          outp += to_wstring(gr1.name);
-                          while (!gr1.is_default || gr1.inheritance != "")
-                          {
-                              outp += L"- " + to_wstring(gr.name) + L"\n";
+                              for (auto xh : gr.inheritances)
+                              {
+                                  if (xh != "")
+                                  {
+                                      gr1 = load_group(xh);
+                                  }
+                                  else
+                                  {
+                                      output.success(utf8_encode(outp));
+                                      return;
+                                  }
+                                  outp += to_wstring(gr1.name);
+                                  while (!gr1.is_default)
+                                  {
+                                      outp += L"- " + to_wstring(gr.name) + L"\n";
+                                  }
+                              }
                           }
                           output.success(utf8_encode(outp));
                           return;
@@ -3907,17 +4025,25 @@ public:
                           _Group gr1;
                           for (auto worl : gr.worlds)
                           {
-                              if (worl.inheritance != "")
-                                  gr1 = load_group(worl.inheritance);
-                              else
+                              if (worl.inheritances.size() != 0)
                               {
-                                  output.success(utf8_encode(outp));
-                                  return;
-                              }
-                              outp += to_wstring(gr1.name);
-                              while (!gr1.is_default || gr1.inheritance != "")
-                              {
-                                  outp += L"- " + to_wstring(gr.name) + L"\n";
+                                  for (auto xh : worl.inheritances)
+                                  {
+                                      if (xh != "")
+                                      {
+                                          gr1 = load_group(xh);
+                                      }
+                                      else
+                                      {
+                                          output.success(utf8_encode(outp));
+                                          return;
+                                      }
+                                      outp += to_wstring(gr1.name);
+                                      while (!gr1.is_default)
+                                      {
+                                          outp += L"- " + to_wstring(gr.name) + L"\n";
+                                      }
+                                  }
                               }
                               output.success(utf8_encode(outp));
                               return;
@@ -3944,7 +4070,9 @@ public:
                        {
                            if (group == groups.groups[i].name)
                            {
-                               groups.groups[i].inheritance = parent;
+                               if (groups.groups[i].inheritances.size() == 1 && groups.groups[i].inheritances[0] == "")
+                                   groups.groups[i].inheritances.clear();
+                               groups.groups[i].inheritances.push_back(parent);
                                break;
                            }
                        }
@@ -3972,7 +4100,7 @@ public:
                                {
                                    if (world == groups.groups[i].worlds[j].name)
                                    {
-                                       groups.groups[i].worlds[j].inheritance = parent;
+                                       groups.groups[i].worlds[j].inheritances.push_back(parent);
                                        break;
                                    }
                                }
@@ -3998,7 +4126,9 @@ public:
                        {
                            if (group == groups.groups[i].name)
                            {
-                               groups.groups[i].inheritance = parent;
+                               if (groups.groups[i].inheritances.size() == 1 && groups.groups[i].inheritances[0] == "")
+                                   groups.groups[i].inheritances.clear();
+                               groups.groups[i].inheritances.push_back(parent);
                                break;
                            }
                        }
@@ -4026,7 +4156,7 @@ public:
                                {
                                    if (world == groups.groups[i].worlds[j].name)
                                    {
-                                       groups.groups[i].worlds[j].inheritance = parent;
+                                       groups.groups[i].worlds[j].inheritances.push_back(parent);
                                        break;
                                    }
                                }
@@ -4077,7 +4207,7 @@ public:
                             {
                                 if (group == groups.groups[i].name)
                                 {
-                                    groups.groups[i].perms.push_back(group + ":" + to_string(lifetime));
+                                    groups.groups[i].perms.push_back(group_permission + ":" + to_string(lifetime));
                                     break;
                                 }
                             }
@@ -4105,7 +4235,7 @@ public:
                                     {
                                         if (world == groups.groups[i].worlds[j].name)
                                         {
-                                            groups.groups[i].worlds[j].permissions.push_back(group + ":" + to_string(lifetime));
+                                            groups.groups[i].worlds[j].permissions.push_back(group_permission + ":" + to_string(lifetime));
                                             break;
                                         }
                                     }
@@ -4131,7 +4261,7 @@ public:
                             {
                                 if (group == groups.groups[i].name)
                                 {
-                                    groups.groups[i].perms.push_back(group + ":" + to_string(lifetime));
+                                    groups.groups[i].perms.push_back(group_permission + ":" + to_string(lifetime));
                                     break;
                                 }
                             }
@@ -4159,7 +4289,7 @@ public:
                                     {
                                         if (world == groups.groups[i].worlds[j].name)
                                         {
-                                            groups.groups[i].worlds[j].permissions.push_back(group + ":" + to_string(lifetime));
+                                            groups.groups[i].worlds[j].permissions.push_back(group_permission + ":" + to_string(lifetime));
                                             break;
                                         }
                                     }
@@ -4346,7 +4476,11 @@ public:
               }
               case Group_Operation::Users:
               {
-                  jet:
+              jet:
+                  if (is_timeadd)
+                      goto java;
+                  if (is_timeremove)
+                      goto jar1;
                   string dim;
                   if (ori.getDimension()->getDimensionId() == 0)
                       dim = "OverWorld";
@@ -4370,9 +4504,12 @@ public:
                       wstring outp = L"[Permissions Ex]: Список игроков,состоящих в гурппе:\n";
                       for (auto v : users.users)
                       {
-                          if (v.group == group)
+                          for (auto xh : v.groups)
                           {
-                              outp += L"- " + to_wstring(v.nickname) + L"\n";
+                              if (xh == group)
+                              {
+                                  outp += L"- " + to_wstring(v.nickname) + L"\n";
+                              }
                           }
                       }
                       output.success(utf8_encode(outp));
@@ -4387,9 +4524,12 @@ public:
                       wstring outp = L"[Permissions Ex]: Список игроков,состоящих в гурппе:\n";
                       for (auto v : users.users)
                       {
-                          if (v.group == group)
+                          for (auto xh : v.groups)
                           {
-                              outp += L"- " + to_wstring(v.nickname) + L"\n";
+                              if (xh == group)
+                              {
+                                  outp += L"- " + to_wstring(v.nickname) + L"\n";
+                              }
                           }
                       }
                       output.success(utf8_encode(outp));
@@ -4430,7 +4570,7 @@ public:
                                 if (player.getName() == users.users[i].nickname)
                                 {
                                     auto gr = load_group(group);
-                                    users.users[i].group = group + ":" + to_string(lifetime);
+                                    users.users[i].groups.push_back(group + ":" + to_string(lifetime));
                                     users.users[i].prefix = gr.prefix;
                                     users.users[i].suffix = gr.suffix;
                                     for (int j = 0; j < gr.worlds.size(); ++j)
@@ -4495,7 +4635,7 @@ public:
                                 if (player.getName() == users.users[i].nickname)
                                 {
                                     auto gr = load_group(group);
-                                    users.users[i].group = group + ":" + to_string(lifetime);
+                                    users.users[i].groups.push_back(group + ":" + to_string(lifetime));
                                     users.users[i].prefix = gr.prefix;
                                     users.users[i].suffix = gr.suffix;
                                     for (int j = 0; j < gr.worlds.size(); ++j)
@@ -4579,31 +4719,26 @@ public:
                             {
                                 if (player.getName() == users.users[i].nickname)
                                 {
-                                    auto vec = split(users.users[i].group, ":");
-                                    if (vec.size() > 0)
+                                    for (int j = 0; j < users.users[i].groups.size(); ++j)
                                     {
-                                        for (auto vv : groups.groups)
+                                        auto vec = split(users.users[i].groups[j], ":");
+                                        if (vec.size() > 0)
                                         {
-                                            if (vv.is_default == true)
-                                            {
-                                                users.users[i].group = vv.name;
-                                                users.users[i].prefix = vv.prefix;
-                                                users.users[i].suffix = vv.suffix;
-                                                for (int j = 0; j < vv.worlds.size(); ++j)
-                                                {
-                                                    users.users[i].worlds[j].group = vv.worlds[j].group;
-                                                    users.users[i].worlds[j].prefix = vv.worlds[j].prefix;
-                                                    users.users[i].worlds[j].suffix = vv.worlds[j].suffix;
-                                                }
-                                                break;
-                                            }
+                                            auto sz = users.users[i].groups.size();
+                                            users.users[i].groups.erase(users.users[i].groups.begin() + j, users.users[i].groups.begin() + j);
+                                            users.users[i].groups.resize(sz - 1);
+                                            auto gro = load_group(users.users[i].groups[users.users[i].groups.size() - 1]);
+                                            users.users[i].prefix = gro.prefix;
+                                            users.users[i].suffix = gro.suffix;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            output.error(utf8_encode(L"[Permissions Ex]: У игрока постоянная группа"));
+                                            return;
                                         }
                                     }
-                                    else
-                                    {
-                                        output.error(utf8_encode(L"[Permissions Ex]: У игрока постоянная группа"));
-                                        return;
-                                    }
+                                   
                                 }
                             }
                             remove("plugins/Permissions Ex/users.yml");
@@ -4660,7 +4795,7 @@ public:
                             ofstream fout("plugins/Permissions Ex/users.yml");
                             fout << node;
                             fout.close();
-                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            output.success(utf8_encode(L"[Permissions Ex]: У игрока была забрана временная группа успешно!"));
                             return;
                         }
                         if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
@@ -4673,31 +4808,26 @@ public:
                             {
                                 if (player.getName() == users.users[i].nickname)
                                 {
-                                    auto vec = split(users.users[i].group, ":");
-                                    if (vec.size() > 0)
+                                    for (int j = 0; j < users.users[i].groups.size(); ++j)
                                     {
-                                        for (auto vv : groups.groups)
+                                        auto vec = split(users.users[i].groups[j], ":");
+                                        if (vec.size() > 0)
                                         {
-                                            if (vv.is_default == true)
-                                            {
-                                                users.users[i].group = vv.name;
-                                                users.users[i].prefix = vv.prefix;
-                                                users.users[i].suffix = vv.suffix;
-                                                for (int j = 0; j < vv.worlds.size(); ++j)
-                                                {
-                                                    users.users[i].worlds[j].group = vv.worlds[j].group;
-                                                    users.users[i].worlds[j].prefix = vv.worlds[j].prefix;
-                                                    users.users[i].worlds[j].suffix = vv.worlds[j].suffix;
-                                                }
-                                                break;
-                                            }
+                                            auto sz = users.users[i].groups.size();
+                                            users.users[i].groups.erase(users.users[i].groups.begin() + j, users.users[i].groups.begin() + j);
+                                            users.users[i].groups.resize(sz - 1);
+                                            auto gro = load_group(users.users[i].groups[users.users[i].groups.size() - 1]);
+                                            users.users[i].prefix = gro.prefix;
+                                            users.users[i].suffix = gro.suffix;
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            output.error(utf8_encode(L"[Permissions Ex]: У игрока постоянная группа"));
+                                            return;
                                         }
                                     }
-                                    else
-                                    {
-                                        output.error(utf8_encode(L"[Permissions Ex]: У игрока постоянная группа"));
-                                        return;
-                                    }
+
                                 }
                             }
                             remove("plugins/Permissions Ex/users.yml");
@@ -4754,7 +4884,7 @@ public:
                             ofstream fout("plugins/Permissions Ex/users.yml");
                             fout << node;
                             fout.close();
-                            output.success(utf8_encode(L"[Permissions Ex]: Игроку была выдана временная группа успешно!"));
+                            output.success(utf8_encode(L"[Permissions Ex]: У игрока была забрана временная группа успешно!"));
                             return;
                         }
                         output.error(error_msg);
@@ -4764,16 +4894,422 @@ public:
               }
             }
        }
+       case Operation::Groups:
+       {
+           string dim;
+           if (ori.getDimension()->getDimensionId() == 0)
+               dim = "OverWorld";
+           else if (ori.getDimension()->getDimensionId() == 1)
+               dim = "Nether";
+           else if (ori.getDimension()->getDimensionId() == 2)
+               dim = "End";
+           string error_msg = get_msg("permissionDenied");
+           string perm = "permissions.manage.groups.list";
+           if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+           {
+               wstring outp = L"[Permissions Ex]: Список групп:\n";
+               YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+               _Groups groups;
+               for (const auto& p :node["groups"])
+               {
+                   groups.groups.push_back(p.as<_Group>());
+               }
+               for (auto g : groups.groups)
+               {
+                   outp += L"- " + to_wstring(g.name) + L"\n";
+               }
+               output.success(utf8_encode(outp));
+               return;
+           }
+           else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+           {
+               wstring outp = L"[Permissions Ex]: Список групп:\n";
+               YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+               _Groups groups;
+               for (const auto& p : node["groups"])
+               {
+                   groups.groups.push_back(p.as<_Group>());
+               }
+               for (auto g : groups.groups)
+               {
+                   outp += L"- " + to_wstring(g.name) + L"\n";
+               }
+               output.success(utf8_encode(outp));
+               return;
+           }
+           output.error(error_msg);
+           return;
+       }
+       case Operation::Users:
+       {
+           string dim;
+           if (ori.getDimension()->getDimensionId() == 0)
+               dim = "OverWorld";
+           else if (ori.getDimension()->getDimensionId() == 1)
+               dim = "Nether";
+           else if (ori.getDimension()->getDimensionId() == 2)
+               dim = "End";
+           string error_msg = get_msg("permissionDenied");
+           string perm = "permissions.manage.users";
+           if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+           {
+               wstring outp = L"[Permissions Ex]: Список игроков бекенда:\n";
+               YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+               Users users;
+               for (const auto& p : node["users"])
+               {
+                   users.users.push_back(p.as<_User>());
+               }
+               for (auto g : users.users)
+               {
+                   outp += L"- " + to_wstring(g.nickname) + L"\n";
+               }
+               output.success(utf8_encode(outp));
+               return;
+           }
+           else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+           {
+               wstring outp = L"[Permissions Ex]: Список игроков бекенда:\n";
+               YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+               Users users;
+               for (const auto& p : node["users"])
+               {
+                   users.users.push_back(p.as<_User>());
+               }
+               for (auto g : users.users)
+               {
+                   outp += L"- " + to_wstring(g.nickname) + L"\n";
+               }
+               output.success(utf8_encode(outp));
+               return;
+           }
+           output.error(error_msg);
+           return;
+       }
+       case Operation::Worlds:
+       {
+           string dim;
+           if (ori.getDimension()->getDimensionId() == 0)
+               dim = "OverWorld";
+           else if (ori.getDimension()->getDimensionId() == 1)
+               dim = "Nether";
+           else if (ori.getDimension()->getDimensionId() == 2)
+               dim = "End";
+           string error_msg = get_msg("permissionDenied");
+           string perm = "permissions.manage.worlds";
+           if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+           {
+               wstring outp = L"[Permissions Ex]: Список загруженных миров:\n- OverWorld\n- Nether\n- End";
+               output.success(utf8_encode(outp));
+               return;
+           }
+           else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+           {
+               wstring outp = L"[Permissions Ex]: Список загруженных миров:\n- OverWorld\n- Nether\n- End";
+               output.success(utf8_encode(outp));
+               return;
+           }
+           output.error(error_msg);
+           return;
+       }
+       case Operation::World:
+       {
+           switch (world_op)
+           {
+             case World_Operation::Inherit:
+             {
+                 string dim;
+                 if (ori.getDimension()->getDimensionId() == 0)
+                     dim = "OverWorld";
+                 else if (ori.getDimension()->getDimensionId() == 1)
+                     dim = "Nether";
+                 else if (ori.getDimension()->getDimensionId() == 2)
+                     dim = "End";
+                 string error_msg = get_msg("permissionDenied");
+                 if (!is_inherit)
+                 {
+                     string perm = "permissions.manage.worlds";
+                     if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+                     {
+                         wstring outp = L"[Permissions Ex]: Наследует миры:\n";
+                         YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                         for (const auto& p : node["worlds"])
+                         {
+                             if (world == p.as<World>().name)
+                             {
+                                 for (auto inh : p.as<World>().inheritances)
+                                 {
+                                     outp += to_wstring(p.as<World>().name) + L" -> " + to_wstring(inh) + L"\n";
+                                 }
+                                 break;
+                             }
+                         }
+                         output.success(utf8_encode(outp));
+                         return;
+                     }
+                     else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+                     {
+                         wstring outp = L"[Permissions Ex]: Наследует миры:\n";
+                         YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                         for (const auto& p : node["worlds"])
+                         {
+                             if (world == p.as<World>().name)
+                             {
+                                 for (auto inh : p.as<World>().inheritances)
+                                 {
+                                     outp += to_wstring(p.as<World>().name) + L" -> " + to_wstring(inh) + L"\n";
+                                 }
+                                 break;
+                             }
+                         }
+                         output.success(utf8_encode(outp));
+                         return;
+                     }
+                }
+                else if (is_inherit)
+                {
+                     string perm = "permissions.manage.worlds.inheritance";
+                     string error_msg1 = get_msg("invalidArgument");
+                     if (world == "" || parent_world == "")
+                     {
+                         output.error(error_msg1);
+                         return;
+                     }
+                     if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+                     {
+                         YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                         vector<World> worlds_v;
+                         for (const auto& p : worlds["worlds"])
+                             worlds_v.push_back(p.as<World>());
+                         World overworld = worlds_v[0];
+                         World nether = worlds_v[1];
+                         World end = worlds_v[2];
+                         if (world == "OverWorld")
+                         {
+                             overworld.inheritances.push_back(parent_world);
+                         }
+                         else if (world == "Nether")
+                         {
+                             nether.inheritances.push_back(parent_world);
+                         }
+                         else if (world == "END")
+                         {
+                             end.inheritances.push_back(parent_world);
+                         }
+                         worlds.reset();
+                         worlds["worlds"].push_back(overworld);
+                         worlds["worlds"].push_back(nether);
+                         worlds["worlds"].push_back(end);
+                         remove("plugins/Permissions Ex/worlds.yml");
+                         ofstream fout("plugins/Permissions Ex/worlds.yml");
+                         fout << worlds;
+                         fout.close();
+                         output.success(utf8_encode(L"[Permissions Ex]: Родительский мир для мира " + to_wstring(world) + L" обновлен успешно!"));
+                         return;
+                     }
+                     else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+                     {
+                         YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                         World overworld = worlds["worlds"]["OverWorld"].as<World>();
+                         World nether = worlds["worlds"]["Nether"].as<World>();
+                         World end = worlds["worlds"]["End"].as<World>();
+                         if (world == "OverWorld")
+                         {
+                             overworld.inheritances.push_back(parent_world);
+                         }
+                         else if (world == "Nether")
+                         {
+                             nether.inheritances.push_back(parent_world);
+                         }
+                         else if (world == "END")
+                         {
+                             end.inheritances.push_back(parent_world);
+                         }
+                         worlds.reset();
+                         worlds["worlds"].push_back(overworld);
+                         worlds["worlds"].push_back(nether);
+                         worlds["worlds"].push_back(end);
+                         remove("plugins/Permissions Ex/worlds.yml");
+                         ofstream fout("plugins/Permissions Ex/worlds.yml");
+                         fout << worlds;
+                         fout.close();
+                         output.success(utf8_encode(L"[Permissions Ex]: Родительский мир для мира " + to_wstring(world) + L" обновлен успешно!"));
+                         return;
+                     }
+                }
+                 output.error(error_msg);
+                 return;
+             }
+           }
+       }
+       case Operation::Default:
+       {
+           switch (def_op)
+           {
+             case Default_Operation::Group:
+             {
+                 defgr:
+                 string dim;
+                 if (ori.getDimension()->getDimensionId() == 0)
+                     dim = "OverWorld";
+                 else if (ori.getDimension()->getDimensionId() == 1)
+                     dim = "Nether";
+                 else if (ori.getDimension()->getDimensionId() == 2)
+                     dim = "End";
+                 string error_msg = get_msg("permissionDenied");
+                 string perm = "permissions.man";
+                 string error_msg1 = get_msg("invalidArgument");
+                 if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
+                 {
+                     YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                     vector<World> worlds_v;
+                     for (const auto& p : worlds["worlds"])
+                         worlds_v.push_back(p.as<World>());
+                     World overworld = worlds_v[0];
+                     World nether = worlds_v[1];
+                     World end = worlds_v[2];
+                     if (world == "")
+                     {
+                         output.success(utf8_encode(L"[Permissions Ex]: Группа по умолчанию для мира OverWorld является " + to_wstring(overworld.group) + L"!"));
+                         return;
+                     }
+                     else if (world == "Nether")
+                     {
+                         output.success(utf8_encode(L"[Permissions Ex]: Группа по умолчанию для мира " + to_wstring(world) + L" является " + to_wstring(nether.group) + L"!"));
+                         return;
+                     }
+                     else if (world == "End")
+                     {
+                         output.success(utf8_encode(L"[Permissions Ex]: Группа по умолчанию для мира " + to_wstring(world) + L" является " + to_wstring(end.group) + L"!"));
+                         return;
+                     }
+                 }
+                 else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
+                 {
+                     YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                     vector<World> worlds_v;
+                     for (const auto& p : worlds["worlds"])
+                         worlds_v.push_back(p.as<World>());
+                     World overworld = worlds_v[0];
+                     World nether = worlds_v[1];
+                     World end = worlds_v[2];
+                     if (world == "")
+                     {
+                         output.success(utf8_encode(L"[Permissions Ex]: Группа по умолчанию для мира OverWorld является " + to_wstring(overworld.group) + L"!"));
+                         return;
+                     }
+                     else if (world == "Nether")
+                     {
+                         output.success(utf8_encode(L"[Permissions Ex]: Группа по умолчанию для мира " + to_wstring(world) + L" является " + to_wstring(nether.group) + L"!"));
+                         return;
+                     }
+                     else if (world == "End")
+                     {
+                         output.success(utf8_encode(L"[Permissions Ex]: Группа по умолчанию для мира " + to_wstring(world) + L" является " + to_wstring(end.group) + L"!"));
+                         return;
+                     }
+                 }
+                 output.error(error_msg);
+                 return;
+             }
+           }
+       }
+       case Operation::Set:
+       {
+           switch (set_op)
+           {
+            case Set_Operation::Default:
+            {
+               switch (def_set_op)
+               {
+                case Default_Set_Operation::Group:
+                {
+                    jet23:
+                    if (is_defgr)
+                        goto defgr;
+                    string dim;
+                    if (ori.getDimension()->getDimensionId() == 0)
+                        dim = "OverWorld";
+                    else if (ori.getDimension()->getDimensionId() == 1)
+                        dim = "Nether";
+                    else if (ori.getDimension()->getDimensionId() == 2)
+                        dim = "End";
+                    string error_msg = get_msg("permissionDenied");
+                    string perm = "permissions.manage.groups.inheritance";
+                    string error_msg1 = get_msg("invalidArgument");
+                    if (group == "")
+                    {
+                        output.error(error_msg1);
+                        return;
+                    }
+                    if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
+                    {
+                        _Groups groups;
+                        YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                        for (const auto& p : node["groups"])
+                            groups.groups.push_back(p.as<_Group>());
+                        for (int i = 0; i < groups.groups.size(); ++i)
+                        {
+                            if (groups.groups[i].is_default)
+                            {
+                                groups.groups[i].is_default = false;
+                            }
+                            if (group == groups.groups[i].name)
+                                groups.groups[i].is_default = true;
+                        }
+                        node.reset();
+                        for (auto gr : groups.groups)
+                            node["groups"].push_back(gr);
+                        remove("plugins/Permissions Ex/groups.yml");
+                        ofstream fout("plugins/Permissions Ex/groups.yml");
+                        fout << node;
+                        fout.close();
+                        output.success(utf8_encode(L"[Permissions Ex]: Группа по умолчанию обновлена успешно!"));
+                        return;
+                    }
+                    if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
+                    {
+                        YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                        vector<World> worlds_v;
+                        for (const auto& p : worlds["worlds"])
+                            worlds_v.push_back(p.as<World>());
+                        World overworld = worlds_v[0];
+                        World nether = worlds_v[1];
+                        World end = worlds_v[2];
+                        if (world == "OverWorld")
+                        {
+                            overworld.group = group;
+                        }
+                        else  if (world == "Nether")
+                        {
+                            nether.group = group;
+                        }
+                        else  if (world == "End")
+                        {
+                            end.group = group;
+                        }
+                        worlds.reset();
+                        worlds["worlds"].push_back(overworld);
+                        worlds["worlds"].push_back(nether);
+                        worlds["worlds"].push_back(end);
+                        remove("plugins/Permissions Ex/worlds.yml");
+                        ofstream fout("plugins/Permissions Ex/worlds.yml");
+                        fout << worlds;
+                        fout.close();
+                        output.success(utf8_encode(L"[Permissions Ex]: Группа по умолчанию для мира " + to_wstring(world) + L" обновлена успешно!"));
+                        return;
+                    }
+                    output.error(error_msg);
+                    return;
+                }
+               }
+            }
+           }
+       }
        case Operation::Help:
         {
-           if (is_add)
-               goto jxd;
-           if (is_remove)
-               goto jcc;
-           if (is_timeadd)
-               goto java;
-           if (is_timeremove)
-               goto jar1;
+           if (is_setdefgroup)
+               goto jet23;
            string dim;
            if (ori.getDimension()->getDimensionId() == 0)
                dim = "OverWorld";
@@ -4870,16 +5406,18 @@ public:
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_delete", "_delete",&Pex::is_delete).addOptions((CommandParameterOption)1));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "prents", "parents").addOptions((CommandParameterOption)1),RegisterCommandHelper::makeOptional<CommandParameterDataType::ENUM>(&Pex::gr_pr_op,"set","set", & Pex::is_parentset).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeOptional(&Pex::parent, "parent"),RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "remove", "remove",&Pex::is_remove).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_add", "_add", &Pex::is_add).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "timed", "timed").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_tm_op, "_add", "_add",&Pex::is_timeadd).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::lifetime, "lifetime"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "timed", "timed").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_tm_op, "remove", "remove", &Pex::is_timeremove).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group_permission, "permission"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "users", "users",&Pex::is_users).addOptions((CommandParameterOption)1));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "user", "user").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "_add", "_add",&Pex::is_usradd).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::player, "user"), RegisterCommandHelper::makeOptional(&Pex::lifetime, "lifetime"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "user", "user").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::gr_op, "remove", "remove",&Pex::is_usrremove).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::player, "user"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
         r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "worlds", "worlds").addOptions((CommandParameterOption)1));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "world", "world").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "world", "world").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::world, "world"), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::world_op, "inherit", "inherit").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::parent_world, "parentWorld"));
-        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "set", "set").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::set_op, "default", "default").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::def_set_op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
-        r->registerOverload<Pex>("pex",RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "default", "default").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::def_op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "world", "world").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::world, "world"), RegisterCommandHelper::makeOptional<CommandParameterDataType::ENUM>(&Pex::world_op, "inherit", "inherit",&Pex::is_inherit).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeOptional(&Pex::parent_world, "parentWorld"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "set", "set",&Pex::is_setdefgroup).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::set_op, "default", "default").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::def_set_op, "group", "group").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory(&Pex::group, "group"), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex",RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "default", "default").addOptions((CommandParameterOption)1), RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::def_op, "group", "group",&Pex::is_defgr).addOptions((CommandParameterOption)1), RegisterCommandHelper::makeOptional(&Pex::world, "world"));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "groups", "groups").addOptions((CommandParameterOption)1));
+        r->registerOverload<Pex>("pex", RegisterCommandHelper::makeMandatory<CommandParameterDataType::ENUM>(&Pex::op, "users", "users").addOptions((CommandParameterOption)1));
     }
 };
 
@@ -4925,14 +5463,18 @@ void entry()
                 ifstream in("plugins/Permissions Ex/whitelist.txt");
                 string nick;
                 auto pl = load_user(ev.mPlayer->getName());
-                auto group = load_group(pl.group);
-                while (getline(in, nick))
+                for (auto xh : pl.groups)
                 {
-                    if (ev.mPlayer->getName() == nick)
+                    auto group = load_group(xh);
+                    while (getline(in, nick))
                     {
-                        is_succ = true;
-                        break;
+                        if (ev.mPlayer->getName() == nick)
+                        {
+                            is_succ = true;
+                            break;
+                        }
                     }
+
                 }
             }
             if (!is_succ && mkb.whitelist)
@@ -4971,7 +5513,7 @@ void entry()
                     }
                 }
                 user.nickname = ev.mPlayer->getName();
-                user.group = def_group.name;
+                user.groups.push_back(def_group.name);
                 user.prefix = def_group.prefix;
                 user.suffix = def_group.suffix;
                 user.permissions = {};
@@ -5045,8 +5587,8 @@ void entry()
                 YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
                 cs = node.as<ChatConfig>();
                 Users users;
-                YAML::Node node23 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
-                for (const auto& p : node23["users"])
+               // YAML::Node node23 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                for (const auto& p : config1["users"])
                     users.users.push_back(p.as<_User>());
                 string res_nick;
                 auto plain = ev.mPlayer->getName();
@@ -5066,7 +5608,10 @@ void entry()
                 if (pl.prefix == "")
                 {
                     auto sp = split(cs.global_message_format, "%prefix%");
-                    cs.global_message_format = sp[0] + sp[1];
+                    if (sp[0][sp[0].size() - 1] == ' ')
+                        cs.global_message_format = string(sp[0].begin(), sp[0].end() - 1) + sp[1];
+                    if (sp[1][sp[1].size() - 1] == ' ')
+                        cs.global_message_format = sp[0] + string(sp[1].begin(), sp[1].end() - 1);
                     replaceAll(cs.global_message_format, "%player%", res_nick);
                     replaceAll(cs.global_message_format, "%suffix%", pl.suffix);
                     replaceAll(cs.global_message_format, "%message%", ev.mMessage);
@@ -5074,7 +5619,10 @@ void entry()
                 if (pl.suffix == "")
                 {
                     auto sp = split(cs.global_message_format, "%suffix%");
-                    cs.global_message_format = sp[0] + sp[1];
+                    if (sp[0][sp[0].size() - 1] == ' ')
+                        cs.global_message_format = string(sp[0].begin(), sp[0].end() - 1) + sp[1];
+                    if (sp[1][sp[1].size() - 1] == ' ')
+                        cs.global_message_format = sp[0] + string(sp[1].begin(), sp[1].end() - 1);
                     replaceAll(cs.global_message_format, "%prefix%", pl.prefix);
                     replaceAll(cs.global_message_format, "%player%", res_nick);
                     replaceAll(cs.global_message_format, "%message%", ev.mMessage);
@@ -5109,8 +5657,8 @@ void entry()
                 YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
                 cs = node.as<ChatConfig>();
                 Users users;
-                YAML::Node node23 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
-                for (const auto& p : node23["users"])
+               // YAML::Node node23 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                for (const auto& p : config1["users"])
                     users.users.push_back(p.as<_User>());
                 string res_nick;
                 auto plain = ev.mPlayer->getName();
@@ -5142,7 +5690,10 @@ void entry()
                             if (pl123.prefix == "")
                             {
                                 auto sp = split(cs.message_format, "%prefix%");
-                                cs.message_format = sp[0] + sp[1];
+                                if (sp[0][sp[0].size() - 1] == ' ')
+                                    cs.message_format = string(sp[0].begin(), sp[0].end() - 1) + sp[1];
+                                if (sp[1][sp[1].size() - 1] == ' ')
+                                    cs.message_format = sp[0] + string(sp[1].begin(), sp[1].end() - 1);
                                 replaceAll(cs.message_format, "%player%", res_nick);
                                 replaceAll(cs.message_format, "%suffix%", pl123.suffix);
                                 replaceAll(cs.message_format, "%message%", ev.mMessage);
@@ -5150,7 +5701,10 @@ void entry()
                             if (pl123.suffix == "")
                             {
                                 auto sp = split(cs.message_format, "%suffix%");
-                                cs.message_format = sp[0] + sp[1];
+                                if (sp[0][sp[0].size() - 1] == ' ')
+                                    cs.message_format = string(sp[0].begin(), sp[0].end() - 1) + sp[1];
+                                if (sp[1][sp[1].size() - 1] == ' ')
+                                    cs.message_format = sp[0] + string(sp[1].begin(), sp[1].end() - 1);
                                 replaceAll(cs.message_format, "%prefix%", pl123.prefix);
                                 replaceAll(cs.message_format, "%player%", res_nick);
                                 replaceAll(cs.message_format, "%message%", ev.mMessage);
@@ -5279,6 +5833,25 @@ void entry()
         {
             try
             {
+                ifstream inpp("plugins/Permissions Ex/worlds.yml");
+                if (!inpp.is_open())
+                {
+                    inpp.close();
+                    World overworld;
+                    overworld.name = "OverWorld";
+                    World nether;
+                    nether.name = "Nether";
+                    World end;
+                    end.name = "End";
+                    YAML::Node node;
+                    node["worlds"].push_back(overworld);
+                    node["worlds"].push_back(nether);
+                    node["worlds"].push_back(end);
+                    ofstream fout("plugins/Permissions Ex/worlds.yml");
+                    fout << node;
+                    fout.close();
+                }
+                inpp.close();
                 ifstream inp("plugins/Permissions Ex/chat.yml");
                 if (!inp.is_open())
                 {
@@ -5302,6 +5875,7 @@ void entry()
                     global_message_format = "%prefix% %player% %suffix% §f%message%";
                     message_format = "%prefix% %player% %suffix% §l%message%";
                 }
+                inp.close();
                 chatconf = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
                 inp.open("plugins/Permissions Ex/modifyworld.yml");
                 if (!inp.is_open())
@@ -5320,6 +5894,7 @@ void entry()
                     informPlayers = true;
                     whitelist = false;
                 }
+                inp.close();
                 modworldconf = YAML::LoadFile("plugins/Permissions Ex/modifyworld.yml");
                 using namespace std;
                 ifstream in("plugins/Permissions Ex/groups.yml");
@@ -5334,14 +5909,16 @@ void entry()
                     WideCharToMultiByte(CP_UTF8, 0, tmp.c_str(), uLen, str, uLen, NULL, NULL);
                     def_group.prefix = str;
                     def_group.is_default = true;
-                    def_group.inheritance = "";
+                    def_group.inheritances = {};
                     def_group.perms = {};
-                    World overworld;
-                    overworld.name = "OverWorld";
-                    World nether;
-                    nether.name = "Nether";
-                    World end;
-                    end.name = "End";
+                    def_group.build = true;
+                    YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                    vector<World> worlds_v;
+                    for (const auto& p : worlds["worlds"])
+                        worlds_v.push_back(p.as<World>());
+                    World overworld = worlds_v[0];
+                    World nether = worlds_v[1];
+                    World end = worlds_v[2];
                     def_group.worlds.push_back(overworld);
                     def_group.worlds.push_back(nether);
                     def_group.worlds.push_back(end);
@@ -5350,6 +5927,7 @@ void entry()
                     fout << config;
                     fout.close();
                 }
+                inp.close();
                 config = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                 in.open("plugins/Permissions Ex/users.yml");;
                 if (!in.is_open())
@@ -5357,17 +5935,18 @@ void entry()
                     in.close();
                     _User u;
                     u.nickname = "This is null-player.Not removed!";
-                    u.group = "player";
-                    auto gr = load_group(u.group);
+                    u.groups.push_back("player");
+                    auto gr = load_group("player");
                     u.prefix = gr.prefix;
                     u.suffix = "";
                     u.permissions = {};
-                    World overworld;
-                    overworld.name = "OverWorld";
-                    World nether;
-                    nether.name = "Nether";
-                    World end;
-                    end.name = "End";
+                    YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
+                    vector<World> worlds_v;
+                    for (const auto& p : worlds["worlds"])
+                        worlds_v.push_back(p.as<World>());
+                    World overworld = worlds_v[0];
+                    World nether = worlds_v[1];
+                    World end = worlds_v[2];
                     u.worlds.push_back(overworld);
                     u.worlds.push_back(nether);
                     u.worlds.push_back(end);
@@ -5379,6 +5958,7 @@ void entry()
                     fout << config1;
                     fout.close();
                 }
+                in.close();
                 config1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                 for (const auto& p : config["groups"]) {
                     groups.groups.push_back(p.as<_Group>());

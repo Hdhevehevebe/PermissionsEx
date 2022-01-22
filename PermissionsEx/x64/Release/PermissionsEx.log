@@ -1,7 +1,7 @@
 ﻿     Создается библиотека D:\PermissionsEx\x64\Release\PermissionsEx.lib и объект D:\PermissionsEx\x64\Release\PermissionsEx.exp
 LINK : warning LNK4098: библиотека по умолчанию "MSVCRT" конфликтует с использованием других библиотек; используйте /NODEFAULTLIB:library
   Создание кода
-  0 of 4174 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  0 of 4206 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
