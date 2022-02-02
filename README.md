@@ -75,8 +75,8 @@
 <h1>Функционал</h1>
 <p>1.Возможность контролировать доступ игроков к командам через права ✔</p>
 <p>2.Гибкий чат-менеджер в виде вшитого дополнения ChatManager ✔</p>
-<p>3.Возможность сильного контроля над действиями игроков в виде вшитого дополнения Modifyworld ❌</p>
+<p>3.Возможность сильного контроля над действиями игроков в виде вшитого дополнения Modifyworld ✔(на 95% права осталось добавить)</p>
 <h1>Features</h1>
 <p>1.The ability to control the access of players to teams through permissions ✔</p>
 <p>2.Flexible chat manager in the form of a built-in ChatManager add-on ✔</p>
-<p>3.The possibility of strong control over the actions of players in the form of an embedded Modifyworld add-on ❌</p>
+<p>3.The possibility of strong control over the actions of players in the form of an embedded Modifyworld add-on ✔(95% right left to add)</p>
