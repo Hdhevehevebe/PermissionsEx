@@ -5669,8 +5669,9 @@ TClasslessInstanceHook(bool, "?isValidTarget@ServerPlayer@@UEBA_NPEAVActor@@@Z",
         }
         return 0;
     }
-  
 }
+
+bool itemRestrictions = false;
 
 THook(void, "?_takeLiquid@BucketItem@@AEBA_NAEAVItemStack@@AEAVActor@@AEBVBlockPos@@@Z", BucketItem* _this, ItemStack& s, Actor& a, const BlockPos& b)
 {
@@ -5710,6 +5711,157 @@ THook(void, "?_takeLiquid@BucketItem@@AEBA_NAEAVItemStack@@AEAVActor@@AEBVBlockP
     return;
 }
 
+THook(void, "?openInventory@ServerPlayer@@UEAAXXZ", ServerPlayer* a1)
+{
+    if (itemRestrictions == false)
+        original(a1);
+    string dim;
+    if (a1->getDimension().getDimensionId() == 0)
+        dim = "OverWorld";
+    else if (a1->getDimension().getDimensionId() == 1)
+        dim = "Nether";
+    else if (a1->getDimension().getDimensionId() == 2)
+        dim = "End";
+    auto nick = split(a1->getName(), " ");
+    string res_nick;
+    for (auto nnn : nick)
+    {
+        for (auto v : users.users)
+        {
+            if (nnn == v.nickname)
+            {
+                res_nick = nnn;
+                break;
+            }
+        }
+    }
+    vector<string> items_have, items_hold;
+    auto us = load_user(res_nick);
+    for (auto u : us.permissions)
+    {
+        regex r("modifyworld.items.have.");
+        smatch sm;
+        if (regex_search(u, sm, r))
+        {
+            auto v = split(sm[0], ".");
+            items_have.push_back(v[v.size() - 1]);
+        }
+        regex r1("modifyworld.items.hold.");
+        smatch sm1;
+        if (regex_search(u, sm1, r1))
+        {
+            auto v = split(sm[0], ".");
+            items_hold.push_back(v[v.size() - 1]);
+        }
+    }
+    for (auto g : us.groups)
+    {
+        auto gr = load_group(g);
+        if (gr.inheritances.size() == 0)
+        {
+            for (auto pe : gr.perms)
+            {
+                regex r("modifyworld.items.have.");
+                smatch sm;
+                if (regex_search(pe, sm, r))
+                {
+                    auto v = split(sm[0], ".");
+                    items_have.push_back(v[v.size() - 1]);
+                }
+                regex r1("modifyworld.items.hold.");
+                smatch sm1;
+                if (regex_search(pe, sm1, r1))
+                {
+                    auto v = split(sm[0], ".");
+                    items_hold.push_back(v[v.size() - 1]);
+                }
+            }
+        }
+        else
+        {
+            for (auto gs : gr.inheritances)
+            {
+                if (gs == "")
+                    break;
+                auto gss = load_group(gs);
+                for (auto pe : gss.perms)
+                {
+                    regex r("modifyworld.items.have.");
+                    smatch sm;
+                    if (regex_search(pe, sm, r))
+                    {
+                        auto v = split(sm[0], ".");
+                        items_have.push_back(v[v.size() - 1]);
+                    }
+                    regex r1("modifyworld.items.hold.");
+                    smatch sm1;
+                    if (regex_search(pe, sm1, r1))
+                    {
+                        auto v = split(sm[0], ".");
+                        items_hold.push_back(v[v.size() - 1]);
+                    }
+                }
+            }
+        }
+    }
+    if (items_have.size() == 0 && (checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+    {
+        a1->getInventory().removeAllItems();
+        original(a1);
+    }
+    auto slots = a1->getInventory().getSlots();
+    int cnt = 0;
+    int flag = 0;
+    for (auto lot : slots)
+    {
+        if (lot->getTypeName() == "")
+            continue;
+        string s(lot->getTypeName());
+        string s1(s.begin() + 10, s.end());
+        string perm = "modifyworld.item.have" + s1;
+        if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+        {
+            auto sz = slots.size();
+            slots.erase(slots.begin() + cnt, slots.begin() + cnt);
+            slots.resize(sz - 1);
+            flag++;
+        }
+       cnt++;
+    }
+    bool hand_block = false;
+    for (auto item : items_hold)
+    {
+        if (a1->getHandSlot()->getTypeName() == "")
+            break;
+        string s(a1->getHandSlot()->getTypeName());
+        string s1(s.begin() + 10, s.end());
+        string perm = "modifyworld.item.have" + s1;
+        if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+        {
+            continue;
+        }
+        else
+        {
+            hand_block = true;
+            break;
+        }
+    }
+    if (hand_block == 1)
+    {
+        a1->getHandSlot()->clearChargedItem();
+    }
+    if (flag == 0)
+        original(a1);
+    else
+    {
+        a1->getInventory().removeAllItems();
+        for (auto item : slots)
+        {
+            a1->getInventory().addItem_s((ItemStack*)item);
+        }
+        original(a1);
+    }
+}
 
 #include <MC/GameMode.hpp>
 #include <MC/NetworkIdentifier.hpp>
@@ -5776,6 +5928,8 @@ THook(void, "?handle@ServerNetworkHandler@@UEAAXAEBVNetworkIdentifier@@AEBVCraft
         return;
     }
 }
+
+
 
 void entry();
 
@@ -6091,8 +6245,6 @@ enum AbilitiesIndex;
 
 #include <MC/Material.hpp>
 
-bool itemRestrictions;
-
 THook(char, "?use@DoorBlock@@UEBA_NAEAVPlayer@@AEBVBlockPos@@E@Z", DoorBlock* a1, Player* a2, const BlockPos& a3, uint8_t a4)
 {
     string dim;
@@ -6146,7 +6298,7 @@ void task()
             if (v.size() == 2 && v[1] != "0")
             {
                 long long cnt = atoll(v[1].c_str());
-                cnt -= 60;
+                cnt -= 3600;
                 if (cnt <= 0)
                 {
                     auto sz = users.users[i].permissions.size();
@@ -6171,7 +6323,7 @@ void task()
                 if (v.size() == 2 && v[1] != "0")
                 {
                     long long cnt = atoll(v[1].c_str());
-                    cnt -= 60;
+                    cnt -= 3600;
                     if (cnt <= 0)
                     {
                         auto sz = users.users[i].worlds[j].permissions.size();
@@ -6195,7 +6347,7 @@ void task()
             if (v.size() == 2 && v[1] != "0")
             {
                 long long cnt = atoll(v[1].c_str());
-                cnt -= 60;
+                cnt -= 3600;
                 if (cnt <= 0)
                 {
                     auto sz = users.users[i].groups.size();
@@ -6218,7 +6370,7 @@ void task()
             if (v.size() == 2 && v[1] != "0")
             {
                 long long cnt = atoll(v[1].c_str());
-                cnt -= 60;
+                cnt -= 3600;
                 if (cnt <= 0)
                 {
                     auto node1 = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
@@ -6254,7 +6406,7 @@ void task()
             }
         }
     }
-    remove("plugins/Permissions Ex/users.yml");
+    ::remove("plugins/Permissions Ex/users.yml");
     node.reset();
     for (auto us : users.users)
         node["users"].push_back(us);
@@ -6269,15 +6421,10 @@ bool is_work = false;
 
 #include <MC/InventorySource.hpp>  
 
-THook(void, "?openInventory@ServerPlayer@@UEAAXXZ", ServerPlayer* a1)
-{
-
-}
-
 void entry()
 {
     auto func = function<void()>(task); //лишение временного доната по истечению времени
-    auto task = Schedule::repeat(func, 1200);
+    auto task = Schedule::repeat(func, 72000);
     Event::PlayerJoinEvent::subscribe([](const Event::PlayerJoinEvent& ev) 
     {
             is_join = 1;
@@ -6364,7 +6511,7 @@ void entry()
                 node.reset();
                 for (auto gr : users.users)
                     node["users"].push_back(gr);
-                remove("plugins/Permissions Ex/users.yml");
+                ::remove("plugins/Permissions Ex/users.yml");
                 ofstream fout("plugins/Permissions Ex/users.yml");
                 fout << node;
                 fout.close();
@@ -7654,6 +7801,8 @@ void entry()
     });
     Event::PlayerUseItemOnEvent::subscribe([](const  Event::PlayerUseItemOnEvent& ev)
         {
+            if (item_use_check == false)
+                return 1;
             string dim;
             if (ev.mPlayer->getDimension().getDimensionId() == 0)
                 dim = "OverWorld";
@@ -7734,8 +7883,44 @@ void entry()
             
             return 0;
     });
+    Event::PlayerChangeDimEvent::subscribe([](const Event::PlayerChangeDimEvent& ev) 
+    {
+            string dim;
+            if (ev.mPlayer->getDimension().getDimensionId() == 0)
+                dim = "OverWorld";
+            else if (ev.mPlayer->getDimension().getDimensionId() == 1)
+                dim = "Nether";
+            else if (ev.mPlayer->getDimension().getDimensionId() == 2)
+                dim = "End";
+            string nick = ev.mPlayer->getName();
+            Users users;
+            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+            for (const auto& p : node["users"])
+                users.users.push_back(p.as<_User>());
+            auto nick1 = split(nick, " ");
+            string res_nick;
+            for (auto n : nick1)
+            {
+                for (auto v : users.users)
+                {
+                    if (n == v.nickname)
+                    {
+                        res_nick = n;
+                        break;
+                    }
+                }
+            }
+            string perm = "worldedit.changedimension." + dim;
+            if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
+            {
+                return 1;
+            }
+            return 0;
+    });
    Event::PlayerDropItemEvent::subscribe([](const Event::PlayerDropItemEvent& ev)
    {
+           if (ev.mItemStack == nullptr || ev.mItemStack->getTypeName() == "")
+               return 1;
            string dim;
            if (ev.mPlayer->getDimension().getDimensionId() == 0)
                dim = "OverWorld";
