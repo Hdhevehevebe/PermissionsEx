@@ -61,7 +61,7 @@ using namespace std::filesystem;
 #pragma comment(lib, "yaml-cpp.lib")
 #pragma comment(lib, "SymDBHelper.lib")
 
-Player* pla;
+bool informPlayers;
 
 using namespace std;
 
@@ -103,7 +103,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        LL::registerPlugin("PermissionsEx 1.0", "Порт PermissionsEx с Bukkit под LiteLoader 2.0", LL::Version(0, 0, 0, LL::Version::Dev));
+        LL::registerPlugin("PermissionsEx 1.0", "Порт PermissionsEx с Bukkit под LiteLoader 2.0", LL::Version(1, 0, 0, LL::Version::Release));
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:
@@ -508,7 +508,6 @@ int chat_range = 0; //из конфига чата,радиус локально
 bool chat_ranged,enabled; //on/off локальный чат и вкл/выкл ли вшитая модификация на чат
 string display_name_format,global_message_format, message_format; //общий формат отображения ника,затем идёт фулл формат сообщения(формат ника + формат сообщения),и последнее это формат не в виде ник + соообщение,а просто сообщение
 
-bool informPlayers; //из конфига Modifyworld: вкл/выкл оповещания игрока об изменении его группы,прав и т.д
 bool whitelist; //белый список
 
 bool checkPerm(string pl, string perm)
@@ -1015,6 +1014,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      string prefix = user_prefix;
                      for (int i = 0; i < prefix.size(); ++i)
                      {
@@ -1040,6 +1053,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Ваш префикс был изменен на " + to_wstring(prefix)));
                      output.success(utf8_encode(L"[Permissions Ex]: Префикс успешно изменен!"));
                      return;
                  }
@@ -1051,6 +1066,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      string prefix = user_prefix;
                      for (int i = 0; i < prefix.size(); ++i)
                      {
@@ -1083,6 +1112,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Ваш префикс был изменен на " + to_wstring(prefix)));
                      output.success(utf8_encode(L"[Permissions Ex]: Префикс успешно изменен!"));
                      return;
                  }
@@ -1093,6 +1124,20 @@ public:
                      for (const auto& p : node["users"])
                      {
                          users.users.push_back(p.as<_User>());
+                     }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
                      }
                      string prefix = user_prefix;
                      for (int i = 0; i < prefix.size(); ++i)
@@ -1119,6 +1164,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Ваш префикс был изменен на " + to_wstring(prefix)));
                      output.success(utf8_encode(L"[Permissions Ex]: Префикс успешно изменен!"));
                      return;
                  }
@@ -1128,6 +1175,20 @@ public:
                      for (const auto& p : node["users"])
                      {
                          users.users.push_back(p.as<_User>());
+                     }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
                      }
                      string prefix = user_prefix;
                      for (int i = 0; i < prefix.size(); ++i)
@@ -1161,6 +1222,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Ваш префикс был изменен на " + to_wstring(prefix)));
                      output.success(utf8_encode(L"[Permissions Ex]: Префикс успешно изменен!"));
                      return;
                  }
@@ -1191,6 +1254,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      string suffix = user_suffix;
                      for (int i = 0; i < suffix.size(); ++i)
                      {
@@ -1215,6 +1292,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Ваш суффикс был изменен на " + to_wstring(suffix)));
                      output.success(utf8_encode(L"[Permissions Ex]: Суфикс успешно изменен!"));
                      return;
                  }
@@ -1225,6 +1304,20 @@ public:
                      for (const auto& p : node["users"])
                      {
                          users.users.push_back(p.as<_User>());
+                     }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
                      }
                      string suffix = user_suffix;
                      for (int i = 0; i < suffix.size(); ++i)
@@ -1257,6 +1350,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Ваш суффикс был изменен на " + to_wstring(suffix)));
                      output.success(utf8_encode(L"[Permissions Ex]: Суфикс успешно изменен!"));
                      return;
                  }
@@ -1278,6 +1373,20 @@ public:
                                  suffix[i] = '§';
                              }
                          }
+                         bool is_succ;
+                         for (auto uu : users.users)
+                         {
+                             if (uu.nickname == player.getName())
+                             {
+                                 is_succ = true;
+                                 break;
+                             }
+                         }
+                         if (is_succ == false)
+                         {
+                             output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                             return;
+                         }
                          suffix = utf8_encode(to_wstring(suffix));
                          for (int i = 0; i < users.users.size(); ++i)
                          {
@@ -1294,6 +1403,8 @@ public:
                          ofstream fout("plugins/Permissions Ex/users.yml");
                          fout << node;
                          fout.close();
+                         if (informPlayers == true)
+                             Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Ваш суффикс был изменен на " + to_wstring(suffix)));
                          auto out_res = utf8_encode(L"[Permissions Ex]: Суфикс успешно изменен!");
                          output.success(out_res);
                          return;
@@ -1319,6 +1430,20 @@ public:
                              suffix[i] = '§';
                          }
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      suffix = utf8_encode(to_wstring(suffix));
                      for (int i = 0; i < users.users.size(); ++i)
                      {
@@ -1342,6 +1467,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Ваш суффикс был изменен на " + to_wstring(suffix)));
                      output.success(utf8_encode(L"[Permissions Ex]: Суфикс успешно изменен!"));
                      return;
                  }
@@ -1382,6 +1509,26 @@ public:
                  }
                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
                  {
+                     Users users;
+                     auto node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                     for (const auto& p : node["users"])
+                     {
+                         users.users.push_back(p.as<_User>());
+                     }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      if (debug_mode)
                      {
                          int hasPerm = checkPerm(player.getName(), user_permission) + checkPermWorlds(player.getName(), user_permission, "OverWorld") + checkPermWorlds(player.getName(), user_permission, "Nether") + checkPermWorlds(player.getName(), user_permission, "End");
@@ -1529,6 +1676,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1544,6 +1705,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вам выдали право " + to_wstring(user_permission)));
                      output.success(utf8_encode(L"[Permissions Ex]: Право выдано успешно!"));
                      return;
                  }
@@ -1555,6 +1718,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1576,6 +1753,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вам выдали право " + to_wstring(user_permission)));
                      output.success(utf8_encode(L"[Permissions Ex]: Право выдано успешно!"));
                      return;
                  }
@@ -1586,6 +1765,20 @@ public:
                      for (const auto& p : node["users"])
                      {
                          users.users.push_back(p.as<_User>());
+                     }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
                      }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
@@ -1602,6 +1795,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вам выдали право " + to_wstring(user_permission)));
                      output.success(utf8_encode(L"[Permissions Ex]: Право выдано успешно!"));
                      return;
                  }
@@ -1612,6 +1807,20 @@ public:
                      for (const auto& p : node["users"])
                      {
                          users.users.push_back(p.as<_User>());
+                     }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
                      }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
@@ -1634,6 +1843,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вам выдали право " + to_wstring(user_permission)));
                      output.success(utf8_encode(L"[Permissions Ex]: Право выдано успешно!"));
                      return;
                  }
@@ -1664,6 +1875,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (player.getName() == users.users[i].nickname)
@@ -1688,6 +1913,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: У вас забрали право " + to_wstring(user_permission)));
                      output.success(utf8_encode(L"[Permissions Ex]: Право забрано успешно!"));
                      return;
                  }
@@ -1699,6 +1926,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (player.getName() == users.users[i].nickname)
@@ -1729,6 +1970,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: У вас забрали право " + to_wstring(user_permission)));
                      output.success(utf8_encode(L"[Permissions Ex]: Право забрано успешно!"));
                      return;
                  }
@@ -1739,6 +1982,20 @@ public:
                      for (const auto& p : node["users"])
                      {
                          users.users.push_back(p.as<_User>());
+                     }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
                      }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
@@ -1764,6 +2021,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: У вас забрали право " + to_wstring(user_permission)));
                      output.success(utf8_encode(L"[Permissions Ex]: Право забрано успешно!"));
                      return;
                  }
@@ -1774,6 +2033,20 @@ public:
                      for (const auto& p : node["users"])
                      {
                          users.users.push_back(p.as<_User>());
+                     }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
                      }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
@@ -1805,6 +2078,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: У вас забрали право " + to_wstring(user_permission)));
                      output.success(utf8_encode(L"[Permissions Ex]: Право забрано успешно!"));
                      return;
                  }
@@ -1836,6 +2111,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (player.getName() == users.users[i].nickname)
@@ -1854,6 +2143,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были удалены из бэкенда сервера"));
                      output.success(utf8_encode(L"[Permissions Ex]: Игрок " + to_wstring(player.getName()) + L" удален из бэкенда успешно!"));
                      return;
                  }
@@ -1865,6 +2156,20 @@ public:
                      {
                          users.users.push_back(p.as<_User>());
                      }
+                     bool is_succ;
+                     for (auto uu : users.users)
+                     {
+                         if (uu.nickname == player.getName())
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                         return;
+                     }
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (player.getName() == users.users[i].nickname)
@@ -1883,6 +2188,8 @@ public:
                      ofstream fout("plugins/Permissions Ex/users.yml");
                      fout << node;
                      fout.close();
+                     if (informPlayers == true)
+                         Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были удалены из бэкенда сервера"));
                      output.success(utf8_encode(L"[Permissions Ex]: Игрок " + to_wstring(player.getName()) + L" удален из бэкенда успешно!"));
                      return;
                  }
@@ -1933,6 +2240,33 @@ public:
                                  {
                                      users.users.push_back(p.as<_User>());
                                  }
+                                 bool is_succ, is_succ1;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 for (auto uu : groups.groups)
+                                 {
+                                     if (uu.name == opval)
+                                     {
+                                         is_succ1 = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
+                                 }
+                                 if (is_succ1 == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данная группа не существует!"));
+                                     return;
+                                 }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
                                      if (player.getName() == users.users[i].nickname)
@@ -1971,6 +2305,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были добавлены в группу " + to_wstring(opval)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временная група выдана успешно!"));
                                  return;
                              }
@@ -1982,8 +2318,34 @@ public:
                                  {
                                      users.users.push_back(p.as<_User>());
                                  }
+                                 bool is_succ, is_succ1;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 for (auto uu : groups.groups)
+                                 {
+                                     if (uu.name == opval)
+                                     {
+                                         is_succ1 = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
+                                 }
+                                 if (is_succ1 == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данная группа не существует!"));
+                                     return;
+                                 }
                                  bool is_group = false;
-
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
                                      if (player.getName() == users.users[i].nickname)
@@ -2018,6 +2380,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были добавлены в группу " + to_wstring(opval)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временная група выдана успешно!"));
                                  return;
                              }
@@ -2028,6 +2392,33 @@ public:
                                  for (const auto& p : node["users"])
                                  {
                                      users.users.push_back(p.as<_User>());
+                                 }
+                                 bool is_succ, is_succ1;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 for (auto uu : groups.groups)
+                                 {
+                                     if (uu.name == opval)
+                                     {
+                                         is_succ1 = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
+                                 }
+                                 if (is_succ1 == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данная группа не существует!"));
+                                     return;
                                  }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
@@ -2067,6 +2458,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были добавлены в группу " + to_wstring(opval)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временная група выдана успешно!"));
                                  return;
                              }
@@ -2077,6 +2470,33 @@ public:
                                  for (const auto& p : node["users"])
                                  {
                                      users.users.push_back(p.as<_User>());
+                                 }
+                                 bool is_succ, is_succ1;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 for (auto uu : groups.groups)
+                                 {
+                                     if (uu.name == opval)
+                                     {
+                                         is_succ1 = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
+                                 }
+                                 if (is_succ1 == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данная группа не существует!"));
+                                     return;
                                  }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
@@ -2112,6 +2532,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были добавлены в группу " + to_wstring(opval)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временная група выдана успешно!"));
                                  return;
                              }
@@ -2127,6 +2549,20 @@ public:
                              {
                                  users.users.push_back(p.as<_User>());
                              }
+                             bool is_succ;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
+                             }
                              for (int i = 0; i < users.users.size(); ++i)
                              {
                                  if (player.getName() == users.users[i].nickname)
@@ -2149,6 +2585,8 @@ public:
                              ofstream fout("plugins/Permissions Ex/users.yml");
                              fout << node;
                              fout.close();
+                             if (informPlayers == true)
+                                 Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вам было выдано временное право " + to_wstring(opval)));
                              output.success(utf8_encode(L"[Permissions Ex]: Временое право выдано успешно!"));
                              return;
                          }
@@ -2159,6 +2597,20 @@ public:
                              for (const auto& p : node["users"])
                              {
                                  users.users.push_back(p.as<_User>());
+                             }
+                             bool is_succ;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
                              }
                              for (int i = 0; i < users.users.size(); ++i)
                              {
@@ -2188,6 +2640,8 @@ public:
                              ofstream fout("plugins/Permissions Ex/users.yml");
                              fout << node;
                              fout.close();
+                             if (informPlayers == true)
+                                 Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вам было выдано временное право " + to_wstring(opval)));
                              output.success(utf8_encode(L"[Permissions Ex]: Временое право выдано успешно!"));
                              return;
                          }
@@ -2198,6 +2652,20 @@ public:
                              for (const auto& p : node["users"])
                              {
                                  users.users.push_back(p.as<_User>());
+                             }
+                             bool is_succ;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
                              }
                              for (int i = 0; i < users.users.size(); ++i)
                              {
@@ -2221,6 +2689,8 @@ public:
                              ofstream fout("plugins/Permissions Ex/users.yml");
                              fout << node;
                              fout.close();
+                             if (informPlayers == true)
+                                 Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вам было выдано временное право " + to_wstring(opval)));
                              output.success(utf8_encode(L"[Permissions Ex]: Временое право выдано успешно!"));
                              return;
                          }
@@ -2231,6 +2701,20 @@ public:
                              for (const auto& p : node["users"])
                              {
                                  users.users.push_back(p.as<_User>());
+                             }
+                             bool is_succ;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
                              }
                              for (int i = 0; i < users.users.size(); ++i)
                              {
@@ -2261,6 +2745,8 @@ public:
                              ofstream fout("plugins/Permissions Ex/users.yml");
                              fout << node;
                              fout.close();
+                             if (informPlayers == true)
+                                 Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вам было выдано временное право " + to_wstring(opval)));
                              output.success(utf8_encode(L"[Permissions Ex]: Временое право выдано успешно!"));
                              return;
                          }
@@ -2308,6 +2794,20 @@ public:
                                  {
                                      users.users.push_back(p.as<_User>());
                                  }
+                                 bool is_succ;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
+                                 }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
                                      if (player.getName() == users.users[i].nickname)
@@ -2351,6 +2851,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были удалены из группы " + to_wstring(opval1)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временная група забрана успешно!"));
                                  return;
                              }
@@ -2361,6 +2863,20 @@ public:
                                  for (const auto& p : node["users"])
                                  {
                                      users.users.push_back(p.as<_User>());
+                                 }
+                                 bool is_succ;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
                                  }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
@@ -2391,6 +2907,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были удалены из группы " + to_wstring(opval1)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временная група забрана успешно!"));
                                  return;
                              }
@@ -2401,6 +2919,20 @@ public:
                                  for (const auto& p : node["users"])
                                  {
                                      users.users.push_back(p.as<_User>());
+                                 }
+                                 bool is_succ;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
                                  }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
@@ -2445,6 +2977,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были удалены из группы " + to_wstring(opval1)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временная група забрана успешно!"));
                                  return;
                              }
@@ -2455,6 +2989,20 @@ public:
                                  for (const auto& p : node["users"])
                                  {
                                      users.users.push_back(p.as<_User>());
+                                 }
+                                 bool is_succ;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
                                  }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
@@ -2485,6 +3033,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были удалены из группы " + to_wstring(opval1)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временная група забрана успешно!"));
                                  return;
                              }
@@ -2500,6 +3050,20 @@ public:
                                  {
                                      users.users.push_back(p.as<_User>());
                                  }
+                                 bool is_succ;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
+                                 }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
                                      if (player.getName() == users.users[i].nickname)
@@ -2525,6 +3089,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: У вас было забрано право " + to_wstring(opval1)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временое право забрано успешно!"));
                                  return;
                              }
@@ -2536,6 +3102,20 @@ public:
                                  {
                                      users.users.push_back(p.as<_User>());
                                  }
+                                 bool is_succ;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
+                                 }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
                                      if (player.getName() == users.users[i].nickname)
@@ -2567,6 +3147,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: У вас было забрано право " + to_wstring(opval1)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временое право забрано успешно!"));
                                  return;
                              }
@@ -2577,6 +3159,20 @@ public:
                                  for (const auto& p : node["users"])
                                  {
                                      users.users.push_back(p.as<_User>());
+                                 }
+                                 bool is_succ;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
                                  }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
@@ -2603,6 +3199,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: У вас было забрано право " + to_wstring(opval1)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временое право забрано успешно!"));
                                  return;
                              }
@@ -2613,6 +3211,20 @@ public:
                                  for (const auto& p : node["users"])
                                  {
                                      users.users.push_back(p.as<_User>());
+                                 }
+                                 bool is_succ;
+                                 for (auto uu : users.users)
+                                 {
+                                     if (uu.nickname == player.getName())
+                                     {
+                                         is_succ = true;
+                                         break;
+                                     }
+                                 }
+                                 if (is_succ == false)
+                                 {
+                                     output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                     return;
                                  }
                                  for (int i = 0; i < users.users.size(); ++i)
                                  {
@@ -2645,6 +3257,8 @@ public:
                                  ofstream fout("plugins/Permissions Ex/users.yml");
                                  fout << node;
                                  fout.close();
+                                 if (informPlayers == true)
+                                     Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: У вас было забрано право " + to_wstring(opval1)));
                                  output.success(utf8_encode(L"[Permissions Ex]: Временое право забрано успешно!"));
                                  return;
                              }
@@ -2678,6 +3292,39 @@ public:
                              {
                                  users.users.push_back(p.as<_User>());
                              }
+                             _Groups groups;
+                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                             for (const auto& p : node1["users"])
+                             {
+                                 groups.groups.push_back(p.as<_Group>());
+                             }
+                             bool is_succ, is_succ1;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             for (auto uu : groups.groups)
+                             {
+                                 if (uu.name == opval2)
+                                 {
+                                     is_succ1 = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
+                             }
+                             if (is_succ1 == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данная группа не существует!"));
+                                 return;
+                             }
                              for (int i = 0; i < users.users.size(); ++i)
                              {
                                  if (player.getName() == users.users[i].nickname)
@@ -2701,6 +3348,8 @@ public:
                              ofstream fout("plugins/Permissions Ex/users.yml");
                              fout << node;
                              fout.close();
+                             if (informPlayers == true)
+                                 Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были добавлены в группу " + to_wstring(opval2)));
                              output.success(utf8_encode(L"[Permissions Ex]: Группа " + to_wstring(opval2) + L" была выдана игроку " + to_wstring(player.getName()) + L" успешно!"));
                              return;
                          }
@@ -2712,6 +3361,39 @@ public:
                              {
                                  users.users.push_back(p.as<_User>());
                              }
+                             _Groups groups;
+                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                             for (const auto& p : node1["users"])
+                             {
+                                 groups.groups.push_back(p.as<_Group>());
+                             }
+                             bool is_succ, is_succ1;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             for (auto uu : groups.groups)
+                             {
+                                 if (uu.name == opval2)
+                                 {
+                                     is_succ1 = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
+                             }
+                             if (is_succ1 == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данная группа не существует!"));
+                                 return;
+                             }
                              for (int i = 0; i < users.users.size(); ++i)
                              {
                                  if (player.getName() == users.users[i].nickname)
@@ -2737,6 +3419,8 @@ public:
                              ofstream fout("plugins/Permissions Ex/users.yml");
                              fout << node;
                              fout.close();
+                             if (informPlayers == true)
+                                 Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были добавлены в группу " + to_wstring(opval2)));
                              output.success(utf8_encode(L"[Permissions Ex]: Группа " + to_wstring(opval2) + L" была выдана игроку " + to_wstring(player.getName()) + L" успешно!"));
                              return;
                          }
@@ -2747,6 +3431,39 @@ public:
                              for (const auto& p : node["users"])
                              {
                                  users.users.push_back(p.as<_User>());
+                             }
+                             _Groups groups;
+                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                             for (const auto& p : node1["users"])
+                             {
+                                 groups.groups.push_back(p.as<_Group>());
+                             }
+                             bool is_succ, is_succ1;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             for (auto uu : groups.groups)
+                             {
+                                 if (uu.name == opval2)
+                                 {
+                                     is_succ1 = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
+                             }
+                             if (is_succ1 == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данная группа не существует!"));
+                                 return;
                              }
                              for (int i = 0; i < users.users.size(); ++i)
                              {
@@ -2771,6 +3488,8 @@ public:
                              ofstream fout("plugins/Permissions Ex/users.yml");
                              fout << node;
                              fout.close();
+                             if (informPlayers == true)
+                                 Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были добавлены в группу " + to_wstring(opval2)));
                              output.success(utf8_encode(L"[Permissions Ex]: Группа " + to_wstring(opval2) + L" была выдана игроку " + to_wstring(player.getName()) + L" успешно!"));
                              return;
                          }
@@ -2781,6 +3500,39 @@ public:
                              for (const auto& p : node["users"])
                              {
                                  users.users.push_back(p.as<_User>());
+                             }
+                             _Groups groups;
+                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                             for (const auto& p : node1["users"])
+                             {
+                                 groups.groups.push_back(p.as<_Group>());
+                             }
+                             bool is_succ, is_succ1;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             for (auto uu : groups.groups)
+                             {
+                                 if (uu.name == opval2)
+                                 {
+                                     is_succ1 = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
+                             }
+                             if (is_succ1 == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данная группа не существует!"));
+                                 return;
                              }
                              for (int i = 0; i < users.users.size(); ++i)
                              {
@@ -2807,6 +3559,8 @@ public:
                              ofstream fout("plugins/Permissions Ex/users.yml");
                              fout << node;
                              fout.close();
+                             if (informPlayers == true)
+                                 Level::getPlayer(player.getName())->sendTextPacket(utf8_encode(L"[Permissions Ex]: Вы были добавлены в группу " + to_wstring(opval2)));
                              output.success(utf8_encode(L"[Permissions Ex]: Группа " + to_wstring(opval2) + L" была выдана игроку " + to_wstring(player.getName()) + L" успешно!"));
                              return;
                          }
@@ -2837,6 +3591,20 @@ public:
                              for (const auto& p : node["users"])
                              {
                                  users.users.push_back(p.as<_User>());
+                             }
+                             bool is_succ;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
                              }
                              for (auto us : users.users)
                              {
@@ -2872,6 +3640,20 @@ public:
                              for (const auto& p : node["users"])
                              {
                                  users.users.push_back(p.as<_User>());
+                             }
+                             bool is_succ;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
                              }
                              for (auto us : users.users)
                              {
@@ -2911,6 +3693,20 @@ public:
                              {
                                  users.users.push_back(p.as<_User>());
                              }
+                             bool is_succ;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
+                             }
                              for (auto us : users.users)
                              {
                                  if (player.getName() == us.nickname)
@@ -2945,6 +3741,20 @@ public:
                              for (const auto& p : node["users"])
                              {
                                  users.users.push_back(p.as<_User>());
+                             }
+                             bool is_succ;
+                             for (auto uu : users.users)
+                             {
+                                 if (uu.nickname == player.getName())
+                                 {
+                                     is_succ = true;
+                                     break;
+                                 }
+                             }
+                             if (is_succ == false)
+                             {
+                                 output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
+                                 return;
                              }
                              for (auto us : users.users)
                              {
@@ -3009,6 +3819,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       string prefix = group_prefix;
                       for (int i = 0; i < prefix.size(); ++i)
                       {
@@ -3042,6 +3866,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       string prefix = group_prefix;
                       for (int i = 0; i < prefix.size(); ++i)
                       {
@@ -3081,6 +3919,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       string prefix = group_prefix;
                       for (int i = 0; i < prefix.size(); ++i)
                       {
@@ -3114,6 +3966,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       string prefix = group_prefix;
                       for (int i = 0; i < prefix.size(); ++i)
                       {
@@ -3172,6 +4038,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       string suffix = group_suffix;
                       for (int i = 0; i < suffix.size(); ++i)
                       {
@@ -3205,6 +4085,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       string suffix = group_suffix;
                       for (int i = 0; i < suffix.size(); ++i)
                       {
@@ -3244,6 +4138,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       string suffix = group_suffix;
                       for (int i = 0; i < suffix.size(); ++i)
                       {
@@ -3277,6 +4185,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       string suffix = group_suffix;
                       for (int i = 0; i < suffix.size(); ++i)
                       {
@@ -3337,6 +4259,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == parent)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       _Group gr;
                       gr.name = group;
                       string prefix = group_prefix,suffix = group_suffix;
@@ -3410,6 +4346,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == parent)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       _Group gr;
                       gr.name = group;
                       gr.prefix = group_prefix;
@@ -3486,6 +4436,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3510,6 +4474,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3540,6 +4518,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3564,6 +4556,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3614,6 +4620,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3648,6 +4668,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3687,6 +4721,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3721,6 +4769,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3786,6 +4848,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       Users users;
                       YAML::Node node2 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                       for (const auto& p : node2["users"])
@@ -3855,6 +4931,20 @@ public:
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                       for (const auto& p : node["groups"])
                           groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       Users users;
                       YAML::Node node2 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                       for (const auto& p : node2["users"])
@@ -3948,6 +5038,24 @@ public:
                       }
                       if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world == "")
                       {
+                          _Groups groups;
+                          YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                          for (const auto& p : node["groups"])
+                              groups.groups.push_back(p.as<_Group>());
+                          bool is_succ;
+                          for (auto uu : groups.groups)
+                          {
+                              if (uu.name == group)
+                              {
+                                  is_succ = true;
+                                  break;
+                              }
+                          }
+                          if (is_succ == false)
+                          {
+                              output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                              return;
+                          }
                           wstring outp = L"[Permissions Ex]: Список родительских групп\n";
                           auto gr = load_group(group);
                           _Group gr1;
@@ -3976,6 +5084,24 @@ public:
                       }
                       if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
                       {
+                          _Groups groups;
+                          YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                          for (const auto& p : node["groups"])
+                              groups.groups.push_back(p.as<_Group>());
+                          bool is_succ;
+                          for (auto uu : groups.groups)
+                          {
+                              if (uu.name == group)
+                              {
+                                  is_succ = true;
+                                  break;
+                              }
+                          }
+                          if (is_succ == false)
+                          {
+                              output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                              return;
+                          }
                           wstring outp = L"[Permissions Ex]: Список родительских групп\n";
                           auto gr = load_group(group);
                           _Group gr1;
@@ -4009,6 +5135,24 @@ public:
                       }
                       if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world == "")
                       {
+                          _Groups groups;
+                          YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                          for (const auto& p : node["groups"])
+                              groups.groups.push_back(p.as<_Group>());
+                          bool is_succ;
+                          for (auto uu : groups.groups)
+                          {
+                              if (uu.name == group)
+                              {
+                                  is_succ = true;
+                                  break;
+                              }
+                          }
+                          if (is_succ == false)
+                          {
+                              output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                              return;
+                          }
                           wstring outp = L"[Permissions Ex]: Список родительских групп\n";
                           auto gr = load_group(group);
                           _Group gr1;
@@ -4037,6 +5181,24 @@ public:
                       }
                       else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
                       {
+                          _Groups groups;
+                          YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                          for (const auto& p : node["groups"])
+                              groups.groups.push_back(p.as<_Group>());
+                          bool is_succ;
+                          for (auto uu : groups.groups)
+                          {
+                              if (uu.name == group)
+                              {
+                                  is_succ = true;
+                                  break;
+                              }
+                          }
+                          if (is_succ == false)
+                          {
+                              output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                              return;
+                          }
                           wstring outp = L"[Permissions Ex]: Список родительских групп\n";
                           auto gr = load_group(group);
                           _Group gr1;
@@ -4083,6 +5245,20 @@ public:
                        _Groups groups;
                        for (const auto& p : node["groups"])
                            groups.groups.push_back(p.as<_Group>());
+                       bool is_succ;
+                       for (auto uu : groups.groups)
+                       {
+                           if (uu.name == group)
+                           {
+                               is_succ = true;
+                               break;
+                           }
+                       }
+                       if (is_succ == false)
+                       {
+                           output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                           return;
+                       }
                        for (int i = 0; i < groups.groups.size(); ++i)
                        {
                            if (group == groups.groups[i].name)
@@ -4109,6 +5285,20 @@ public:
                        _Groups groups;
                        for (const auto& p : node["groups"])
                            groups.groups.push_back(p.as<_Group>());
+                       bool is_succ;
+                       for (auto uu : groups.groups)
+                       {
+                           if (uu.name == group)
+                           {
+                               is_succ = true;
+                               break;
+                           }
+                       }
+                       if (is_succ == false)
+                       {
+                           output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                           return;
+                       }
                        for (int i = 0; i < groups.groups.size(); ++i)
                        {
                            if (group == groups.groups[i].name)
@@ -4139,6 +5329,20 @@ public:
                        _Groups groups;
                        for (const auto& p : node["groups"])
                            groups.groups.push_back(p.as<_Group>());
+                       bool is_succ;
+                       for (auto uu : groups.groups)
+                       {
+                           if (uu.name == group)
+                           {
+                               is_succ = true;
+                               break;
+                           }
+                       }
+                       if (is_succ == false)
+                       {
+                           output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                           return;
+                       }
                        for (int i = 0; i < groups.groups.size(); ++i)
                        {
                            if (group == groups.groups[i].name)
@@ -4165,6 +5369,20 @@ public:
                        _Groups groups;
                        for (const auto& p : node["groups"])
                            groups.groups.push_back(p.as<_Group>());
+                       bool is_succ;
+                       for (auto uu : groups.groups)
+                       {
+                           if (uu.name == group)
+                           {
+                               is_succ = true;
+                               break;
+                           }
+                       }
+                       if (is_succ == false)
+                       {
+                           output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                           return;
+                       }
                        for (int i = 0; i < groups.groups.size(); ++i)
                        {
                            if (group == groups.groups[i].name)
@@ -4220,6 +5438,20 @@ public:
                             _Groups groups;
                             for (const auto& p : node["groups"])
                                 groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < groups.groups.size(); ++i)
                             {
                                 if (group == groups.groups[i].name)
@@ -4244,6 +5476,20 @@ public:
                             _Groups groups;
                             for (const auto& p : node["groups"])
                                 groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < groups.groups.size(); ++i)
                             {
                                 if (group == groups.groups[i].name)
@@ -4274,6 +5520,20 @@ public:
                             _Groups groups;
                             for (const auto& p : node["groups"])
                                 groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < groups.groups.size(); ++i)
                             {
                                 if (group == groups.groups[i].name)
@@ -4298,6 +5558,20 @@ public:
                             _Groups groups;
                             for (const auto& p : node["groups"])
                                 groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < groups.groups.size(); ++i)
                             {
                                 if (group == groups.groups[i].name)
@@ -4348,6 +5622,20 @@ public:
                             _Groups groups;
                             for (const auto& p : node["groups"])
                                 groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < groups.groups.size(); ++i)
                             {
                                 if (group == groups.groups[i].name)
@@ -4381,6 +5669,20 @@ public:
                             _Groups groups;
                             for (const auto& p : node["groups"])
                                 groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < groups.groups.size(); ++i)
                             {
                                 if (group == groups.groups[i].name)
@@ -4420,6 +5722,20 @@ public:
                             _Groups groups;
                             for (const auto& p : node["groups"])
                                 groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < groups.groups.size(); ++i)
                             {
                                 if (group == groups.groups[i].name)
@@ -4453,6 +5769,20 @@ public:
                             _Groups groups;
                             for (const auto& p : node["groups"])
                                 groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < groups.groups.size(); ++i)
                             {
                                 if (group == groups.groups[i].name)
@@ -4514,6 +5844,24 @@ public:
                   }
                   if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
                   {
+                      YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      _Groups groups;
+                      for (const auto& p : node1["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       Users users;
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                       for (const auto& p : node["users"])
@@ -4534,6 +5882,24 @@ public:
                   }
                   else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
                   {
+                      YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                      _Groups groups;
+                      for (const auto& p : node1["groups"])
+                          groups.groups.push_back(p.as<_Group>());
+                      bool is_succ;
+                      for (auto uu : groups.groups)
+                      {
+                          if (uu.name == group)
+                          {
+                              is_succ = true;
+                              break;
+                          }
+                      }
+                      if (is_succ == false)
+                      {
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          return;
+                      }
                       Users users;
                       YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                       for (const auto& p : node["users"])
@@ -4582,6 +5948,24 @@ public:
                             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                             for (const auto& p : node["users"])
                                 users.users.push_back(p.as<_User>());
+                            YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node1["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < users.users.size(); ++i)
                             {
                                 if (player.getName() == users.users[i].nickname)
@@ -4614,6 +5998,24 @@ public:
                             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                             for (const auto& p : node["users"])
                                 users.users.push_back(p.as<_User>());
+                            YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node1["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < users.users.size(); ++i)
                             {
                                 if (player.getName() == users.users[i].nickname)
@@ -4647,6 +6049,24 @@ public:
                             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                             for (const auto& p : node["users"])
                                 users.users.push_back(p.as<_User>());
+                            YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node1["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < users.users.size(); ++i)
                             {
                                 if (player.getName() == users.users[i].nickname)
@@ -4679,6 +6099,24 @@ public:
                             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                             for (const auto& p : node["users"])
                                 users.users.push_back(p.as<_User>());
+                            YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node1["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < users.users.size(); ++i)
                             {
                                 if (player.getName() == users.users[i].nickname)
@@ -4732,6 +6170,24 @@ public:
                             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                             for (const auto& p : node["users"])
                                 users.users.push_back(p.as<_User>());
+                            YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node1["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < users.users.size(); ++i)
                             {
                                 if (player.getName() == users.users[i].nickname)
@@ -4774,6 +6230,24 @@ public:
                             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                             for (const auto& p : node["users"])
                                 users.users.push_back(p.as<_User>());
+                            YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node1["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < users.users.size(); ++i)
                             {
                                 if (player.getName() == users.users[i].nickname)
@@ -4821,6 +6295,24 @@ public:
                             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                             for (const auto& p : node["users"])
                                 users.users.push_back(p.as<_User>());
+                            YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node1["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < users.users.size(); ++i)
                             {
                                 if (player.getName() == users.users[i].nickname)
@@ -4863,6 +6355,24 @@ public:
                             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
                             for (const auto& p : node["users"])
                                 users.users.push_back(p.as<_User>());
+                            YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                            _Groups groups;
+                            for (const auto& p : node1["groups"])
+                                groups.groups.push_back(p.as<_Group>());
+                            bool is_succ;
+                            for (auto uu : groups.groups)
+                            {
+                                if (uu.name == group)
+                                {
+                                    is_succ = true;
+                                    break;
+                                }
+                            }
+                            if (is_succ == false)
+                            {
+                                output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                                return;
+                            }
                             for (int i = 0; i < users.users.size(); ++i)
                             {
                                 if (player.getName() == users.users[i].nickname)
@@ -5178,6 +6688,24 @@ public:
                  string error_msg1 = get_msg("invalidArgument");
                  if (ori.getPermissionsLevel() == CommandPermissionLevel::Console)
                  {
+                     YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                     _Groups groups;
+                     for (const auto& p : node1["groups"])
+                         groups.groups.push_back(p.as<_Group>());
+                     bool is_succ;
+                     for (auto uu : groups.groups)
+                     {
+                         if (uu.name == group)
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                         return;
+                     }
                      YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
                      vector<World> worlds_v;
                      for (const auto& p : worlds["worlds"])
@@ -5203,6 +6731,24 @@ public:
                  }
                  else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)))
                  {
+                     YAML::Node node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                     _Groups groups;
+                     for (const auto& p : node1["groups"])
+                         groups.groups.push_back(p.as<_Group>());
+                     bool is_succ;
+                     for (auto uu : groups.groups)
+                     {
+                         if (uu.name == group)
+                         {
+                             is_succ = true;
+                             break;
+                         }
+                     }
+                     if (is_succ == false)
+                     {
+                         output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                         return;
+                     }
                      YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
                      vector<World> worlds_v;
                      for (const auto& p : worlds["worlds"])
@@ -5265,6 +6811,20 @@ public:
                         YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                         for (const auto& p : node["groups"])
                             groups.groups.push_back(p.as<_Group>());
+                        bool is_succ;
+                        for (auto uu : groups.groups)
+                        {
+                            if (uu.name == group)
+                            {
+                                is_succ = true;
+                                break;
+                            }
+                        }
+                        if (is_succ == false)
+                        {
+                            output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                            return;
+                        }
                         for (int i = 0; i < groups.groups.size(); ++i)
                         {
                             if (groups.groups[i].is_default)
@@ -5286,6 +6846,24 @@ public:
                     }
                     if (ori.getPermissionsLevel() == CommandPermissionLevel::Console && world != "")
                     {
+                        _Groups groups;
+                        YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                        for (const auto& p : node["groups"])
+                            groups.groups.push_back(p.as<_Group>());
+                        bool is_succ;
+                        for (auto uu : groups.groups)
+                        {
+                            if (uu.name == group)
+                            {
+                                is_succ = true;
+                                break;
+                            }
+                        }
+                        if (is_succ == false)
+                        {
+                            output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                            return;
+                        }
                         YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
                         vector<World> worlds_v;
                         for (const auto& p : worlds["worlds"])
@@ -5322,6 +6900,20 @@ public:
                         YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                         for (const auto& p : node["groups"])
                             groups.groups.push_back(p.as<_Group>());
+                        bool is_succ;
+                        for (auto uu : groups.groups)
+                        {
+                            if (uu.name == group)
+                            {
+                                is_succ = true;
+                                break;
+                            }
+                        }
+                        if (is_succ == false)
+                        {
+                            output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                            return;
+                        }
                         for (int i = 0; i < groups.groups.size(); ++i)
                         {
                             if (groups.groups[i].is_default)
@@ -5343,6 +6935,24 @@ public:
                     }
                     else if ((checkPerm(ori.getPlayer()->getName(), perm) || checkPerm(ori.getPlayer()->getName(), "plugins.*") || checkPerm(ori.getPlayer()->getName(), "permissions.*") || checkPermWorlds(ori.getPlayer()->getName(), perm, dim) || checkPermWorlds(ori.getPlayer()->getName(), "plugins.*", dim) || checkPermWorlds(ori.getPlayer()->getName(), "permissions.*", dim)) && world != "")
                     {
+                        _Groups groups;
+                        YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
+                        for (const auto& p : node["groups"])
+                            groups.groups.push_back(p.as<_Group>());
+                        bool is_succ;
+                        for (auto uu : groups.groups)
+                        {
+                            if (uu.name == group)
+                            {
+                                is_succ = true;
+                                break;
+                            }
+                        }
+                        if (is_succ == false)
+                        {
+                            output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                            return;
+                        }
                         YAML::Node worlds = YAML::LoadFile("plugins/Permissions Ex/worlds.yml");
                         vector<World> worlds_v;
                         for (const auto& p : worlds["worlds"])
@@ -5542,17 +7152,17 @@ THook(void, "?execute@EnchantCommand@@UEBAXAEBVCommandOrigin@@AEAVCommandOutput@
     return;
 }
 
-TClasslessInstanceHook(bool, "?use@BedBlock@@UEBA_NAEAVPlayer@@AEBVBlockPos@@E@Z", BedBlock* _this, Player& pl, BlockPos const& bp, unsigned char uc)
+THook(int, "?startSleepInBed@Player@@UEAA?AW4BedSleepingResult@@AEBVBlockPos@@@Z", Player* a1,BlockPos const& a2)
 {
     string dim;
-    auto id = pl.getDimensionId();
+    auto id = a1->getDimensionId();
     if (id == 0)
         dim = "OverWorld";
     else if (id == 1)
         dim = "Nether";
     else if (id == 2)
         dim = "End";
-    string nick = pl.getName();
+    string nick = a1->getName();
     Users users;
     YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
     for (const auto& p : node["users"])
@@ -5573,7 +7183,7 @@ TClasslessInstanceHook(bool, "?use@BedBlock@@UEBA_NAEAVPlayer@@AEBVBlockPos@@E@Z
     string perm = "modifyworld.usebeds";
     if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
     {
-        return 1;
+        return original(a1,a2);
     }
     return 0;
 }
@@ -5715,6 +7325,7 @@ THook(void, "?openInventory@ServerPlayer@@UEAAXXZ", ServerPlayer* a1)
 {
     if (itemRestrictions == false)
         original(a1);
+    
     string dim;
     if (a1->getDimension().getDimensionId() == 0)
         dim = "OverWorld";
@@ -5804,7 +7415,7 @@ THook(void, "?openInventory@ServerPlayer@@UEAAXXZ", ServerPlayer* a1)
             }
         }
     }
-    if (items_have.size() == 0 && (checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+    if (items_have.size() == 0 && (checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, "plugins.*", dim) != 1 || checkPermWorlds(res_nick, "modifyworld.*", dim) != 1))
     {
         a1->getInventory().removeAllItems();
         original(a1);
@@ -6152,7 +7763,7 @@ THook(char, "?take@Player@@QEAA_NAEAVActor@@HH@Z", Player* a1, Actor& a2, int a3
     string perm = "modifyworld.items.pickup." + s1;
     if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
     {
-        original(a1, a2, a3, a4);
+        return original(a1, a2, a3, a4);
     }
     return 0;
 }
@@ -6239,6 +7850,8 @@ THook(void, "?addPassenger@Boat@@UEAAXAEAVActor@@@Z", Boat* a1, Actor& a2)
     }
     return;
 }
+
+#include <MC/Minecart.hpp>
 
 enum PlayerPermissionLevel;
 enum AbilitiesIndex;
@@ -6575,7 +8188,8 @@ void entry()
                 dim = "Nether";
             else if (ev.mPlayer->getDimension().getDimensionId() == 2)
                 dim = "End";
-            string perm = "modifyworld.chat";
+            bool global_perm = false;
+            string perm = "chatmanager.chat.global";
             if (!enabled)
              return 1;
             if (!chat_ranged || chat_range == 0)
@@ -6602,7 +8216,7 @@ void entry()
                     }
                 }
                 bool is_suc = false;
-                if ((checkPerm(ev.mPlayer->getName(), perm) || checkPerm(ev.mPlayer->getName(), "plugins.*") || checkPerm(ev.mPlayer->getName(), "modifyworld.*") || checkPermWorlds(ev.mPlayer->getName(), perm, dim) || checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || checkPermWorlds(ev.mPlayer->getName(), "modifyworld.*", dim)))
+                if ((checkPerm(ev.mPlayer->getName(), perm) || checkPerm(ev.mPlayer->getName(), "plugins.*") || checkPerm(ev.mPlayer->getName(), "chatmanager.chat.*") || checkPermWorlds(ev.mPlayer->getName(), perm, dim) || checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || checkPermWorlds(ev.mPlayer->getName(), "chatmanager.chat.*", dim)))
                 {
                     is_suc = true;
                 }
@@ -6690,7 +8304,15 @@ void entry()
                 regex reg1("§k");
                 smatch smt, smt1;
                 bool is_suc = false;
-                if ((checkPerm(ev.mPlayer->getName(), perm) || checkPerm(ev.mPlayer->getName(), "plugins.*") || checkPerm(ev.mPlayer->getName(), "modifyworld.*") || checkPermWorlds(ev.mPlayer->getName(), perm, dim) || checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || checkPermWorlds(ev.mPlayer->getName(), "modifyworld.*", dim)))
+                regex rrr("%prefix%");
+                smatch ssm;
+                regex rrr1("%player%");
+                smatch ssm1;
+                regex rrr2("%suffix%");
+                smatch ssm2;
+                regex rrr3("%message%");
+                smatch ssm3;
+                if ((checkPerm(ev.mPlayer->getName(), perm) || checkPerm(ev.mPlayer->getName(), "plugins.*") || checkPerm(ev.mPlayer->getName(), "chatmanager.chat.*") || checkPermWorlds(ev.mPlayer->getName(), perm, dim) || checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || checkPermWorlds(ev.mPlayer->getName(), "chatmanager.chat.*", dim)))
                 {
                     is_suc = true;
                 }
@@ -6699,52 +8321,105 @@ void entry()
                     ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав писать в чат!"));
                     return 0;
                 }
-                if (ev.mMessage[0] != '!' && checkPerm(res_nick,"chatmanager.override.ranged") == false && is_suc)
+                bool is_prefixtoken, is_suffixtoken, is_playertoken, is_msgtoken, is_prefixtoken1, is_suffixtoken1, is_playertoken1, is_msgtoken1;
+                if (ev.mMessage[0] != '!' && checkPerm(res_nick, "chatmanager.override.ranged") == false && is_suc)
                 {
+                    if (regex_search(cs.message_format, ssm, rrr))
+                    {
+                        is_prefixtoken = true;
+                    }
+                    if (regex_search(cs.message_format, ssm1, rrr2))
+                    {
+                        is_playertoken = true;
+                    }
+                    if (regex_search(cs.message_format, ssm2, rrr2))
+                    {
+                        is_suffixtoken = true;
+                    }
+                    if (regex_search(cs.message_format, ssm3, rrr3))
+                    {
+                        is_msgtoken = true;
+                    }
+                    if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                    }
+                    else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                    }
+                    else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                    }
+                    else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.suffix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                    }
+                    else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                    }
+                    else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                    }
+                    else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                    }
+                    else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                    }
+                    else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                    }
+                    else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                    }
+                    else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                    }
+                    else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                    }
+                    else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                    }
+                    else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                    {
+                        replaceAll(cs.message_format, "%message%", pl123.suffix);
+                    }
+                    else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                    }
                     for (auto p : players)
                     {
                         double x1 = ev.mPlayer->getPos().x, y1 = ev.mPlayer->getPos().y, z1 = ev.mPlayer->getPos().z, x2 = p->getPos().x, y2 = p->getPos().y, z2 = p->getPos().z;
                         double distance = sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) + pow(z2 - z1, 2));
-                        if (distance <= cs.chat_range)
+                        if (ev.mMessage[0] != '!' && distance <= cs.chat_range)
                         {
-                            if (pl123.prefix == "")
-                            {
-                                auto sp = split(cs.message_format, "%prefix%");
-                                if (sp[0][sp[0].size() - 1] == ' ')
-                                    cs.message_format = string(sp[0].begin(), sp[0].end() - 1) + sp[1];
-                                if (sp[1][sp[1].size() - 1] == ' ')
-                                    cs.message_format = sp[0] + string(sp[1].begin(), sp[1].end() - 1);
-                                replaceAll(cs.message_format, "%player%", res_nick);
-                                replaceAll(cs.message_format, "%suffix%", pl123.suffix);
-                                replaceAll(cs.message_format, "%message%", ev.mMessage);
-                            }
-                            if (pl123.suffix == "")
-                            {
-                                auto sp = split(cs.message_format, "%suffix%");
-                                if (sp[0][sp[0].size() - 1] == ' ')
-                                    cs.message_format = string(sp[0].begin(), sp[0].end() - 1) + sp[1];
-                                if (sp[1][sp[1].size() - 1] == ' ')
-                                    cs.message_format = sp[0] + string(sp[1].begin(), sp[1].end() - 1);
-                                replaceAll(cs.message_format, "%prefix%", pl123.prefix);
-                                replaceAll(cs.message_format, "%player%", res_nick);
-                                replaceAll(cs.message_format, "%message%", ev.mMessage);
-                            }
-                            if (pl123.prefix == "" && pl123.suffix == "")
-                            {
-                                auto sp = split(cs.message_format, "%prefix%");
-                                cs.message_format = sp[0] + sp[1];
-                                auto sp1 = split(cs.message_format, "%suffix%");
-                                cs.message_format = sp1[0] + sp1[1];
-                                replaceAll(cs.message_format, "%player%", res_nick);
-                                replaceAll(cs.message_format, "%message%", ev.mMessage);
-                            }
-                            if (pl123.prefix != "" && pl123.suffix != "")
-                            {
-                                replaceAll(cs.message_format, "%prefix%", pl123.prefix);
-                                replaceAll(cs.message_format, "%player%", res_nick);
-                                replaceAll(cs.message_format, "%suffix%", pl123.suffix);
-                                replaceAll(cs.message_format, "%message%", ev.mMessage);
-                            }
                             if (regex_search(ev.mMessage, smt, reg) && regex_search(ev.mMessage, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
                             {
                                 ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать цветные сообщения!"));
@@ -6759,63 +8434,121 @@ void entry()
                             return 0;
                         }
                     }
-                    return 0;
+
                 }
                 else if (ev.mMessage[0] == '!' && (checkPerm(res_nick, "chatmanager.chat.global") == true || checkPerm(res_nick, "chatmanager.override.ranged") == true) && is_suc)
                 {
-                    auto msg = string(ev.mMessage.begin()+1, ev.mMessage.end());
-                    for (auto p : players)
-                    {
-                        if (pl123.prefix == "")
+                        if (regex_search(cs.global_message_format, ssm, rrr))
                         {
-                            auto sp = split(cs.global_message_format, "%prefix%");
-                            cs.global_message_format = sp[0] + sp[1];
-                            replaceAll(cs.global_message_format, "%player%", res_nick);
-                            replaceAll(cs.global_message_format, "%suffix%", pl123.suffix);
-                            replaceAll(cs.global_message_format, "%message%", ev.mMessage);
+                            is_prefixtoken1 = true;
                         }
-                        if (pl123.suffix == "")
+                        if (regex_search(cs.global_message_format, ssm1, rrr2))
                         {
-                            auto sp = split(cs.global_message_format, "%suffix%");
-                            cs.global_message_format = sp[0] + sp[1];
-                            replaceAll(cs.global_message_format, "%prefix%", pl123.prefix);
-                            replaceAll(cs.global_message_format, "%player%", res_nick);
-                            replaceAll(cs.global_message_format, "%message%",msg);
+                            is_playertoken1 = true;
                         }
-                        if (pl123.prefix == "" && pl123.suffix == "")
+                        if (regex_search(cs.global_message_format, ssm2, rrr2))
                         {
-                            auto sp = split(cs.global_message_format, "%prefix%");
-                            cs.global_message_format = sp[0] + sp[1];
-                            auto sp1 = split(cs.global_message_format, "%suffix%");
-                            cs.global_message_format = sp1[0] + sp1[1];
-                            replaceAll(cs.global_message_format, "%player%", res_nick);
-                            replaceAll(cs.global_message_format, "%message%", msg);
+                            is_suffixtoken1 = true;
                         }
-                        if (pl123.prefix != "" && pl123.suffix != "")
+                        if (regex_search(cs.global_message_format, ssm3, rrr3))
                         {
-                            replaceAll(cs.global_message_format, "%prefix%",pl123.prefix);
-                            replaceAll(cs.global_message_format, "%player%", res_nick);
-                            replaceAll(cs.global_message_format, "%suffix%", pl123.suffix);
-                            replaceAll(cs.global_message_format, "%message%", msg);
+                            is_msgtoken1 = true;
                         }
-                        if (regex_search(msg, smt, reg) && regex_search(msg, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
+                        auto msg = string(ev.mMessage.begin() + 1, ev.mMessage.end());
+                        if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
                         {
-                            ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать цветные сообщения!"));
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            replaceAll(cs.global_message_format, "%message%", pl123.suffix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        for (auto p : players)
+                        {
+                            if (regex_search(ev.mMessage, smt, reg) && regex_search(ev.mMessage, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
+                            {
+                                    ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать цветные сообщения!"));
+                                    return 0;
+                            }
+                            else if (regex_search(ev.mMessage, smt1, reg1) && checkPerm(res_nick, "chatmanager.chat.magic") == false)
+                            {
+                                    ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать волшебный цвет в сообщениях!"));
+                                    return 0;
+                            }
+                            (ServerPlayer*)p->sendText(utf8_encode(to_wstring("[§aG§r] ")) + cs.global_message_format);
                             return 0;
                         }
-                        else if (regex_search(msg, smt1, reg1) && checkPerm(res_nick, "chatmanager.chat.magic") == false)
-                        {
-                            ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать волшебный цвет в сообщениях!"));
-                            return 0;
-                        }
-                        ev.mPlayer->sendText(utf8_encode(to_wstring("[§aG§r] ")) + cs.global_message_format);
-                        return 0;
-                    }
                 }
                 else if (ev.mMessage[0] == '!' && checkPerm(res_nick, "chatmanager.chat.global") == false)
                 {
-                    ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас недостаточно прав для отправки сообщений в глобальный чат!"));
-                    return 0;
+                        ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас недостаточно прав для отправки сообщений в глобальный чат!"));
+                        return 0;
                 }
             }
     });
@@ -7164,7 +8897,7 @@ void entry()
     });
     Event::PlayerInventoryChangeEvent::subscribe([](const Event::PlayerInventoryChangeEvent& ev)
         {
-            if (ev.mPlayer == nullptr)
+            if (ev.mPlayer == nullptr && (ev.mNewItemStack->getTypeName() == "" || ev.mPreviousItemStack->getTypeName() == ""))
                 return 1;
             string dim;
             if (ev.mPlayer->getDimensionId() == 0)
@@ -7205,9 +8938,9 @@ void entry()
                 ItemStack it = *ev.mNewItemStack;
                 EnchantUtils::removeEnchants(it);
                 ev.mNewItemStack->setNbt(it.getNbt().get());
-                return 1;
+                return 0;
             }
-            return 1;
+            return 0;
     });
     Event::ContainerChangeEvent::subscribe([](const Event::ContainerChangeEvent& ev) 
     {
@@ -7634,7 +9367,6 @@ void entry()
             }
             else if (type == 0)
             {
-              pla = ev.mPlayer;
               is_work = true;
               string s = bl.getBlock()->getTypeName();
               string s1(s.begin() + 10, s.end());
