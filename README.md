@@ -1,6 +1,6 @@
 <h1>Permissions Ex</h1>
-<p>Почти полноценный порт PermissionsEx с Bukkit на LiteLoader(WIP).</p>
-<p>Almost a full-fledged port of PermissionsEx from Bukkit to LiteLoader(WIP).</p>
+<p>Почти полноценный порт PermissionsEx с Bukkit на LiteLoader.</p>
+<p>Almost a full-fledged port of PermissionsEx from Bukkit to LiteLoader.</p>
 <p></p>
 <h1>Permissions Ex команды:</h1>
 <p>/pex help ✔</p>
@@ -73,10 +73,10 @@
 <p>/pex world [world] inherint [parentWorld] ✔</p>
 <p>/pex default group [group] [world] ✔</p>
 <h1>Функционал</h1>
-<p>1.Возможность контролировать доступ игроков к командам через права(в релизе будет защита от дураков) ✔</p>
+<p>1.Возможность контролировать доступ игроков к командам через права(отсуствуют modifyworld.minecart.enter и modifyworld.minecart.destroy) ✔</p>
 <p>2.Гибкий чат-менеджер в виде вшитого дополнения ChatManager ✔</p>
 <p>3.Возможность сильного контроля над действиями игроков в виде вшитого дополнения Modifyworld ✔(добавить поддержку 1 опции из конфига осталось)</p>
 <h1>Features</h1>
 <p>1.The ability to control player access to commands via rights (foolproofing will be in the release) ✔</p>
 <p>2.Flexible chat manager as a built-in ChatManager add-on ✔</p>
-<p>3.The ability to have strong control over players' actions as a built-in add-on Modifyworld ✔(add support for 1 option from config left)</p>
+<p>3.The ability to have strong control over players' actions as a built-in add-on Modifyworld ✔(undefined  modifyworld.minecart.enter and modifyworld.minecart.destroy)</p>
