@@ -7148,8 +7148,11 @@ THook(void, "?execute@EnchantCommand@@UEBAXAEBVCommandOrigin@@AEAVCommandOutput@
     {
         original(_this, ori, outp);
     }
-    outp.error(utf8_encode(L"[Permissions Ex]: Этот предмет запрещено зачаровывать для вас!"));
-    return;
+    else if ((checkPerm(res_nick, perm) != true || checkPerm(res_nick, "plugins.*") != true || checkPerm(res_nick, "modifyworld.*") != true || checkPermWorlds(res_nick, perm, dim) != true || checkPermWorlds(res_nick, "plugins.*", dim) != true || checkPermWorlds(res_nick, "modifyworld.*", dim) != true))
+    {
+        outp.error(utf8_encode(L"[Permissions Ex]: Этот предмет запрещено зачаровывать для вас!"));
+        return;
+    }
 }
 
 THook(int, "?startSleepInBed@Player@@UEAA?AW4BedSleepingResult@@AEBVBlockPos@@@Z", Player* a1,BlockPos const& a2)
@@ -7325,77 +7328,54 @@ THook(void, "?openInventory@ServerPlayer@@UEAAXXZ", ServerPlayer* a1)
 {
     if (itemRestrictions == false)
         original(a1);
-    
-    string dim;
-    if (a1->getDimension().getDimensionId() == 0)
-        dim = "OverWorld";
-    else if (a1->getDimension().getDimensionId() == 1)
-        dim = "Nether";
-    else if (a1->getDimension().getDimensionId() == 2)
-        dim = "End";
-    auto nick = split(a1->getName(), " ");
-    string res_nick;
-    for (auto nnn : nick)
+    else if (itemRestrictions == true)
     {
-        for (auto v : users.users)
+        cerr << "opened!\n";
+        string dim;
+        if (a1->getDimension().getDimensionId() == 0)
+            dim = "OverWorld";
+        else if (a1->getDimension().getDimensionId() == 1)
+            dim = "Nether";
+        else if (a1->getDimension().getDimensionId() == 2)
+            dim = "End";
+        auto nick = split(a1->getName(), " ");
+        string res_nick;
+        for (auto nnn : nick)
         {
-            if (nnn == v.nickname)
+            for (auto v : users.users)
             {
-                res_nick = nnn;
-                break;
-            }
-        }
-    }
-    vector<string> items_have, items_hold;
-    auto us = load_user(res_nick);
-    for (auto u : us.permissions)
-    {
-        regex r("modifyworld.items.have.");
-        smatch sm;
-        if (regex_search(u, sm, r))
-        {
-            auto v = split(sm[0], ".");
-            items_have.push_back(v[v.size() - 1]);
-        }
-        regex r1("modifyworld.items.hold.");
-        smatch sm1;
-        if (regex_search(u, sm1, r1))
-        {
-            auto v = split(sm[0], ".");
-            items_hold.push_back(v[v.size() - 1]);
-        }
-    }
-    for (auto g : us.groups)
-    {
-        auto gr = load_group(g);
-        if (gr.inheritances.size() == 0)
-        {
-            for (auto pe : gr.perms)
-            {
-                regex r("modifyworld.items.have.");
-                smatch sm;
-                if (regex_search(pe, sm, r))
+                if (nnn == v.nickname)
                 {
-                    auto v = split(sm[0], ".");
-                    items_have.push_back(v[v.size() - 1]);
-                }
-                regex r1("modifyworld.items.hold.");
-                smatch sm1;
-                if (regex_search(pe, sm1, r1))
-                {
-                    auto v = split(sm[0], ".");
-                    items_hold.push_back(v[v.size() - 1]);
-                }
-            }
-        }
-        else
-        {
-            for (auto gs : gr.inheritances)
-            {
-                if (gs == "")
+                    res_nick = nnn;
                     break;
-                auto gss = load_group(gs);
-                for (auto pe : gss.perms)
+                }
+            }
+        }
+        vector<string> items_have, items_hold;
+        auto us = load_user(res_nick);
+        for (auto u : us.permissions)
+        {
+            regex r("modifyworld.items.have.");
+            smatch sm;
+            if (regex_search(u, sm, r))
+            {
+                auto v = split(sm[0], ".");
+                items_have.push_back(v[v.size() - 1]);
+            }
+            regex r1("modifyworld.items.hold.");
+            smatch sm1;
+            if (regex_search(u, sm1, r1))
+            {
+                auto v = split(sm[0], ".");
+                items_hold.push_back(v[v.size() - 1]);
+            }
+        }
+        for (auto g : us.groups)
+        {
+            auto gr = load_group(g);
+            if (gr.inheritances.size() == 0)
+            {
+                for (auto pe : gr.perms)
                 {
                     regex r("modifyworld.items.have.");
                     smatch sm;
@@ -7413,64 +7393,90 @@ THook(void, "?openInventory@ServerPlayer@@UEAAXXZ", ServerPlayer* a1)
                     }
                 }
             }
+            else
+            {
+                for (auto gs : gr.inheritances)
+                {
+                    if (gs == "")
+                        break;
+                    auto gss = load_group(gs);
+                    for (auto pe : gss.perms)
+                    {
+                        regex r("modifyworld.items.have.");
+                        smatch sm;
+                        if (regex_search(pe, sm, r))
+                        {
+                            auto v = split(sm[0], ".");
+                            items_have.push_back(v[v.size() - 1]);
+                        }
+                        regex r1("modifyworld.items.hold.");
+                        smatch sm1;
+                        if (regex_search(pe, sm1, r1))
+                        {
+                            auto v = split(sm[0], ".");
+                            items_hold.push_back(v[v.size() - 1]);
+                        }
+                    }
+                }
+            }
         }
-    }
-    if (items_have.size() == 0 && (checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, "plugins.*", dim) != 1 || checkPermWorlds(res_nick, "modifyworld.*", dim) != 1))
-    {
-        a1->getInventory().removeAllItems();
-        original(a1);
-    }
-    auto slots = a1->getInventory().getSlots();
-    int cnt = 0;
-    int flag = 0;
-    for (auto lot : slots)
-    {
-        if (lot->getTypeName() == "")
-            continue;
-        string s(lot->getTypeName());
-        string s1(s.begin() + 10, s.end());
-        string perm = "modifyworld.item.have" + s1;
-        if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+        if (items_have.size() == 0 && (checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, "plugins.*", dim) != 1 || checkPermWorlds(res_nick, "modifyworld.*", dim) != 1))
         {
-            auto sz = slots.size();
-            slots.erase(slots.begin() + cnt, slots.begin() + cnt);
-            slots.resize(sz - 1);
-            flag++;
+            a1->getInventory().removeAllItems();
+            original(a1);
         }
-       cnt++;
-    }
-    bool hand_block = false;
-    for (auto item : items_hold)
-    {
-        if (a1->getHandSlot()->getTypeName() == "")
-            break;
-        string s(a1->getHandSlot()->getTypeName());
-        string s1(s.begin() + 10, s.end());
-        string perm = "modifyworld.item.have" + s1;
-        if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+        auto slots = a1->getInventory().getSlots();
+        int cnt = 0;
+        int flag = 0;
+        for (auto lot : slots)
         {
-            continue;
+            if (lot->getTypeName() == "")
+                continue;
+            string s(lot->getTypeName());
+            string s1(s.begin() + 10, s.end());
+            string perm = "modifyworld.item.have" + s1;
+            if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+            {
+                auto sz = slots.size();
+                slots.erase(slots.begin() + cnt, slots.begin() + cnt);
+                slots.resize(sz - 1);
+                flag++;
+            }
+            cnt++;
         }
+        bool hand_block = false;
+        for (auto item : items_hold)
+        {
+            if (a1->getHandSlot()->getTypeName() == "")
+                break;
+            string s(a1->getHandSlot()->getTypeName());
+            string s1(s.begin() + 10, s.end());
+            string perm = "modifyworld.item.have" + s1;
+            if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+            {
+                continue;
+            }
+            else
+            {
+                hand_block = true;
+                break;
+            }
+        }
+        if (hand_block == 1)
+        {
+            a1->getHandSlot()->clearChargedItem();
+        }
+        if (flag == 0)
+            original(a1);
         else
         {
-            hand_block = true;
-            break;
+            a1->getInventory().removeAllItems();
+            for (auto item : slots)
+            {
+                a1->getInventory().addItem_s((ItemStack*)item);
+            }
+            original(a1);
         }
-    }
-    if (hand_block == 1)
-    {
-        a1->getHandSlot()->clearChargedItem();
-    }
-    if (flag == 0)
-        original(a1);
-    else
-    {
-        a1->getInventory().removeAllItems();
-        for (auto item : slots)
-        {
-            a1->getInventory().addItem_s((ItemStack*)item);
-        }
-        original(a1);
     }
 }
 
@@ -7765,7 +7771,10 @@ THook(char, "?take@Player@@QEAA_NAEAVActor@@HH@Z", Player* a1, Actor& a2, int a3
     {
         return original(a1, a2, a3, a4);
     }
-    return 0;
+    else  if ((checkPerm(res_nick, perm) != 1 || checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, perm, dim) != 1 || checkPermWorlds(res_nick, "plugins.*", dim) != 1 || checkPermWorlds(res_nick, "modifyworld.*", dim) != 1))
+    {
+        return 0;
+    }
 }
 
 #include <MC/ChestBlockActor.hpp>
@@ -8299,7 +8308,7 @@ void entry()
                     }
                 }
                 auto pl123 = load_user(res_nick);
-                auto players = Level::getAllPlayers();
+               
                 regex reg("§");
                 regex reg1("§k");
                 smatch smt, smt1;
@@ -8339,6 +8348,13 @@ void entry()
                     if (regex_search(cs.message_format, ssm3, rrr3))
                     {
                         is_msgtoken = true;
+                    }
+                    if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                    {
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
                     }
                     if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
                     {
@@ -8414,6 +8430,7 @@ void entry()
                     {
                         cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
                     }
+                    auto players = Level::getAllPlayers();
                     for (auto p : players)
                     {
                         double x1 = ev.mPlayer->getPos().x, y1 = ev.mPlayer->getPos().y, z1 = ev.mPlayer->getPos().z, x2 = p->getPos().x, y2 = p->getPos().y, z2 = p->getPos().z;
@@ -8431,10 +8448,9 @@ void entry()
                                 return 0;
                             }
                             (ServerPlayer*)p->sendText(utf8_encode(to_wstring("[§eL§r] ")) + cs.message_format);
-                            return 0;
                         }
                     }
-
+                    return 0;
                 }
                 else if (ev.mMessage[0] == '!' && (checkPerm(res_nick, "chatmanager.chat.global") == true || checkPerm(res_nick, "chatmanager.override.ranged") == true) && is_suc)
                 {
@@ -8455,6 +8471,13 @@ void entry()
                             is_msgtoken1 = true;
                         }
                         auto msg = string(ev.mMessage.begin() + 1, ev.mMessage.end());
+                        if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"),pl123.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
                         if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
                         {
                             cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
@@ -8529,6 +8552,7 @@ void entry()
                         {
                             cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
                         }
+                        auto players = Level::getAllPlayers();
                         for (auto p : players)
                         {
                             if (regex_search(ev.mMessage, smt, reg) && regex_search(ev.mMessage, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
@@ -8542,8 +8566,8 @@ void entry()
                                     return 0;
                             }
                             (ServerPlayer*)p->sendText(utf8_encode(to_wstring("[§aG§r] ")) + cs.global_message_format);
-                            return 0;
                         }
+                        return 0;
                 }
                 else if (ev.mMessage[0] == '!' && checkPerm(res_nick, "chatmanager.chat.global") == false)
                 {
@@ -8897,7 +8921,7 @@ void entry()
     });
     Event::PlayerInventoryChangeEvent::subscribe([](const Event::PlayerInventoryChangeEvent& ev)
         {
-            if (ev.mPlayer == nullptr && (ev.mNewItemStack->getTypeName() == "" || ev.mPreviousItemStack->getTypeName() == ""))
+            if (ev.mPlayer == nullptr && (ev.mNewItemStack->getTypeName() == "" || ev.mPreviousItemStack->getTypeName() == "" || ev.mPlayer->getName() == "" || ev.mNewItemStack->getTypeName().size() == 0 || ev.mPreviousItemStack->getTypeName().size() == 0 || ev.mPlayer->getName().size() == 0) || ev.mPreviousItemStack == nullptr || ev.mNewItemStack == nullptr)
                 return 1;
             string dim;
             if (ev.mPlayer->getDimensionId() == 0)
@@ -8922,7 +8946,7 @@ void entry()
             if (ev.mNewItemStack == nullptr)
                 return 1;
             auto it = ev.mNewItemStack->getTypeName();
-            if (it == "")
+            if (it.size() == 0)
                 return 1;
             string s = string(it.begin() + 10, it.end());
             string perm = "modifyworld.items.enchant." + s;
@@ -8930,17 +8954,20 @@ void entry()
             {
                 return 1;
             }
-            auto nbt = ev.mNewItemStack->getNbt()->toSNBT();
-            regex r("ench");
-            smatch sm;
-            if (regex_search(nbt, sm, r))
+            else
             {
-                ItemStack it = *ev.mNewItemStack;
-                EnchantUtils::removeEnchants(it);
-                ev.mNewItemStack->setNbt(it.getNbt().get());
+                auto nbt = ev.mNewItemStack->getNbt()->toSNBT();
+                regex r("ench");
+                smatch sm;
+                if (regex_search(nbt, sm, r))
+                {
+                    ItemStack it = *ev.mNewItemStack;
+                    EnchantUtils::removeEnchants(it);
+                    ev.mNewItemStack->setNbt(it.getNbt().get());
+                    return 0;
+                }
                 return 0;
             }
-            return 0;
     });
     Event::ContainerChangeEvent::subscribe([](const Event::ContainerChangeEvent& ev) 
     {
@@ -9419,7 +9446,6 @@ void entry()
             vector<string> groupss; //группа атакуемого игрока
             if (name == "minecraft:player")
             {
-                cerr << "a\n";
                 auto pll = Level::getPlayer(ev.mTarget->getActorUniqueId());
                 auto plll = load_user(pll->getName());
                 for (auto pe : plll.permissions)
@@ -9782,12 +9808,15 @@ void entry()
                    }
                }
            }
-           string perm = "modifyworld.digestion";
+           string perm = "modifyworld.digestion"; 
            if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
            {
                return 1;
            }
-           return 0;
+           else if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
+           {
+               return 0;
+           }
        });
    Event::PlayerPlaceBlockEvent::subscribe([](const Event::PlayerPlaceBlockEvent& ev) 
    {
