@@ -3309,7 +3309,7 @@ public:
                              }
                              _Groups groups;
                              auto node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
-                             for (const auto& p : node1["users"])
+                             for (const auto& p : node1["groups"])
                              {
                                  groups.groups.push_back(p.as<_Group>());
                              }
@@ -3378,7 +3378,7 @@ public:
                              }
                              _Groups groups;
                              auto node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
-                             for (const auto& p : node1["users"])
+                             for (const auto& p : node1["groups"])
                              {
                                  groups.groups.push_back(p.as<_Group>());
                              }
@@ -3449,7 +3449,7 @@ public:
                              }
                              _Groups groups;
                              auto node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
-                             for (const auto& p : node1["users"])
+                             for (const auto& p : node1["groups"])
                              {
                                  groups.groups.push_back(p.as<_Group>());
                              }
@@ -3518,7 +3518,7 @@ public:
                              }
                              _Groups groups;
                              auto node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
-                             for (const auto& p : node1["users"])
+                             for (const auto& p : node1["groups"])
                              {
                                  groups.groups.push_back(p.as<_Group>());
                              }
@@ -8386,86 +8386,518 @@ void entry()
                         is_msgtoken1 = true;
                     }
                     auto msg = string(ev.mMessage.begin() + 1, ev.mMessage.end());
-                    if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    if (dim == "OverWorld")
                     {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        if (pl.worlds[0].prefix == "" && pl.worlds[0].suffix == "")
+                        {
+                            if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = "";
+                            }
+                        }
+                        else
+                        {
+                            if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[0].prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[0].suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[0].suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[0].prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[0].suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[0].prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[0].suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[0].suffix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[0].suffix);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[0].prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[0].prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[0].suffix);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[0].prefix);
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            }
+                            else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[0].prefix);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[0].suffix);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                            {
+                                cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                            }
+                            else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                            {
+                                cs.global_message_format = "";
+                            }
+                        }
                     }
-                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    else if (dim == "Nether")
                     {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                      if (pl.worlds[1].prefix == "" && pl.worlds[1].suffix == "")
+                      {
+                        if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = "";
+                        }
+                      }
+                      else
+                      {
+                        if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[1].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[1].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[1].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[1].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[1].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[1].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[1].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[1].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[1].suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[1].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[1].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[1].suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[1].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[1].prefix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[1].suffix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = "";
+                        }
+                      }
                     }
-                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    else if (dim == "End")
                     {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                      if (pl.worlds[2].prefix == "" && pl.worlds[2].suffix == "")
+                      {
+                        if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = "";
+                        }
                     }
-                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    else
                     {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                    }
-                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.suffix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                    }
-                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                    }
-                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                    }
-                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
-                    }
-                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                    }
-                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
-                    }
-                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                    }
-                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
-                    }
-                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                    }
-                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
-                    }
-                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
-                    {
-                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                    }
-                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
-                    {
-                        cs.global_message_format = "";
+                        if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[2].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[2].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[2].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[2].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[2].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[2].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[2].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[2].suffix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[2].suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[2].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[2].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[2].suffix);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[2].prefix);
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.worlds[2].prefix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.worlds[2].suffix);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                        {
+                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                        }
+                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                        {
+                            cs.global_message_format = "";
+                        }
+                      }
                     }
                     regex reg("§");
                     regex reg1("§k");
@@ -8552,86 +8984,518 @@ void entry()
                     {
                         is_msgtoken = true;
                     }
-                    if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                    if (dim == "OverWorld")
                     {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        if (pl123.worlds[0].prefix == "" && pl123.worlds[0].suffix == "")
+                        {
+                            if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                            {
+                                cs.message_format = "";
+                            }
+                        }
+                        else
+                        {
+                            if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[0].prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[0].suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[0].suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[0].prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[0].suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[0].prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[0].suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[0].suffix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[0].suffix);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[0].prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[0].prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[0].suffix);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[0].prefix);
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            }
+                            else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[0].prefix);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[0].suffix);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                            {
+                                cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                            }
+                            else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                            {
+                                cs.message_format = "";
+                            }
+                        }
                     }
-                    else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                    else if (dim == "Nether")
                     {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
-                    }
-                    else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                      if (pl123.worlds[1].prefix == "" && pl123.worlds[1].suffix == "")
+                      {
+                        if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = "";
+                        }
+                      }
+                      else
+                      {
+                        if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[1].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[1].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[1].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[1].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[1].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[1].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[1].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[1].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[1].suffix);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[1].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[1].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[1].suffix);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[1].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[1].prefix);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[1].suffix);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = "";
+                        }
+                      }
+                    } 
+                    else if (dim == "Nether")
                     {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
-                    }
-                    else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
-                    }
-                    else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.suffix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
-                    }
-                    else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
-                    }
-                    else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
-                    }
-                    else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
-                    }
-                    else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
-                    }
-                    else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
-                    }
-                    else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
-                    }
-                    else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
-                    }
-                    else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
-                    }
-                    else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
-                    }
-                    else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
-                    {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
-                    }
-                    else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
-                    {
-                        cs.message_format = "";
+                      if (pl123.worlds[2].prefix == "" && pl123.worlds[2].suffix == "")
+                      {
+                        if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.prefix);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = "";
+                        }
+                      }
+                      else
+                      {
+                        if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[2].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[2].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[2].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[2].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[2].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[2].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[2].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[2].suffix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[2].suffix);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[2].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[2].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[2].suffix);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[2].prefix);
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken == true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%prefix%"), pl123.worlds[2].prefix);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken == true && is_msgtoken != true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.worlds[2].suffix);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
+                        {
+                            cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        }
+                        else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
+                        {
+                            cs.message_format = "";
+                        }
+                      }
                     }
                     auto players = Level::getAllPlayers();
                     for (auto p : players)
