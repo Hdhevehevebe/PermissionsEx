@@ -4268,9 +4268,9 @@ public:
                               break;
                           }
                       }
-                      if (is_succ == false)
+                      if (is_succ == true)
                       {
-                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа уже существует!"));
                           return;
                       }
                       _Group gr;
@@ -4355,9 +4355,9 @@ public:
                               break;
                           }
                       }
-                      if (is_succ == false)
+                      if (is_succ == true)
                       {
-                          output.error(utf8_encode(L"[Permissions Ex]: Группа не найдена!"));
+                          output.error(utf8_encode(L"[Permissions Ex]: Группа уже существует!"));
                           return;
                       }
                       _Group gr;
@@ -7231,7 +7231,7 @@ THook(void, "?_becomeTame@TameableComponent@@AEAAXAEAVActor@@@Z", TameableCompon
 
 #include <MC/Monster.hpp>
 
-TClasslessInstanceHook(bool, "?isValidTarget@ServerPlayer@@UEBA_NPEAVActor@@@Z", ServerPlayer* _this, Actor* mob)
+THook(bool, "?isValidTarget@ServerPlayer@@UEBA_NPEAVActor@@@Z", ServerPlayer* _this, Actor* mob)
 {
     if (mob == nullptr)
         return 1;
@@ -7263,14 +7263,16 @@ TClasslessInstanceHook(bool, "?isValidTarget@ServerPlayer@@UEBA_NPEAVActor@@@Z",
     }
     try
     {
-        string s = mob->getTypeName();
-        string s1(s.begin() + 10, s.end());
-        string perm = "modifyworld.mobtarget." + s1;
+        auto vs = split(mob->getTypeName(), ":");
+        string perm = "modifyworld.mobtarget." + vs[1];
         if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
         {
-            return 1;
+            return original(_this,mob);
         }
-        return 0;
+        else  if ((checkPerm(res_nick, perm) != true || checkPerm(res_nick, "plugins.*") != true || checkPerm(res_nick, "modifyworld.*") != true || checkPermWorlds(res_nick, perm, dim) != true || checkPermWorlds(res_nick, "plugins.*", dim) != true || checkPermWorlds(res_nick, "modifyworld.*", dim) != true))
+        {
+            return 0;
+        }
     }
     catch (length_error& e)
     {
@@ -7278,9 +7280,12 @@ TClasslessInstanceHook(bool, "?isValidTarget@ServerPlayer@@UEBA_NPEAVActor@@@Z",
         string perm = "modifyworld.mobtarget." + s;
         if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
         {
-            return 1;
+            return original(_this, mob);
         }
-        return 0;
+        else  if ((checkPerm(res_nick, perm) != true || checkPerm(res_nick, "plugins.*") != true || checkPerm(res_nick, "modifyworld.*") != true || checkPermWorlds(res_nick, perm, dim) != true || checkPermWorlds(res_nick, "plugins.*", dim) != true || checkPermWorlds(res_nick, "modifyworld.*", dim) != true))
+        {
+            return 0;
+        }
     }
 }
 
@@ -7289,14 +7294,14 @@ bool itemRestrictions = false;
 THook(void, "?_takeLiquid@BucketItem@@AEBA_NAEAVItemStack@@AEAVActor@@AEBVBlockPos@@@Z", BucketItem* _this, ItemStack& s, Actor& a, const BlockPos& b)
 {
     string dim;
-    auto id = a.getPlayerOwner()->getDimensionId();
+    auto id = a.getDimensionId();
     if (id == 0)
         dim = "OverWorld";
     else if (id == 1)
         dim = "Nether";
     else if (id == 2)
         dim = "End";
-    string nick = a.getPlayerOwner()->getName();
+    string nick = a.getNameTag();
     Users users;
     YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
     for (const auto& p : node["users"])
@@ -7314,14 +7319,21 @@ THook(void, "?_takeLiquid@BucketItem@@AEBA_NAEAVItemStack@@AEAVActor@@AEBVBlockP
             }
         }
     }
-    string ss = a.getBlockSource()->getBlock(b).getTypeName();
-    string s1(ss.begin() + 10, ss.end());
-    string perm = "modifyworld.bucket.fill" + ss;
-    if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
-    {
+    auto vs = split(a.getBlockSource()->getBlock(b).getTypeName(), ":");
+    if (vs[1] != "water" && vs[1] != "lava")
         original(_this, s, a, b);
+    else if (vs[1] == "water" || vs[1] == "lava")
+    {
+        string perm = "modifyworld.bucket.fill" + vs[1];
+        if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
+        {
+            original(_this, s, a, b);
+        }
+        else if ((checkPerm(res_nick, perm) != 1 || checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, perm, dim) != 1 || checkPermWorlds(res_nick, "plugins.*", dim) != 1 || checkPermWorlds(res_nick, "modifyworld.*", dim) != 1))
+        {
+            return;
+        }
     }
-    return;
 }
 
 THook(void, "?openInventory@ServerPlayer@@UEAAXXZ", ServerPlayer* a1)
@@ -7330,7 +7342,6 @@ THook(void, "?openInventory@ServerPlayer@@UEAAXXZ", ServerPlayer* a1)
         original(a1);
     else if (itemRestrictions == true)
     {
-        cerr << "opened!\n";
         string dim;
         if (a1->getDimension().getDimensionId() == 0)
             dim = "OverWorld";
@@ -7764,14 +7775,18 @@ THook(char, "?take@Player@@QEAA_NAEAVActor@@HH@Z", Player* a1, Actor& a2, int a3
             }
         }
     }
-    string s = a2.getNbt()->getCompound("Item")->getString("Name");
-    string s1(s.begin() + 10, s.end());
-    string perm = "modifyworld.items.pickup." + s1;
+    auto nbt = a2.getNbt()->toSNBT();
+    regex r("Item");
+    smatch sm;
+    if (!regex_search(nbt, sm, r))
+        return original(a1, a2, a3, a4);
+    auto vs = split(a2.getNbt()->getCompound("Item")->getString("Name"), ":");
+    string perm = "modifyworld.items.pickup." + vs[1];
     if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
     {
         return original(a1, a2, a3, a4);
     }
-    else  if ((checkPerm(res_nick, perm) != 1 || checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, perm, dim) != 1 || checkPermWorlds(res_nick, "plugins.*", dim) != 1 || checkPermWorlds(res_nick, "modifyworld.*", dim) != 1))
+    else if ((checkPerm(res_nick, perm) != 1 || checkPerm(res_nick, "plugins.*") != 1 || checkPerm(res_nick, "modifyworld.*") != 1 || checkPermWorlds(res_nick, perm, dim) != 1 || checkPermWorlds(res_nick, "plugins.*", dim) != 1 || checkPermWorlds(res_nick, "modifyworld.*", dim) != 1))
     {
         return 0;
     }
@@ -8094,6 +8109,8 @@ void entry()
                 ev.mPlayer->kick(v);
                 return 0;
             }
+            if (mkb.whitelist == false)
+                is_succ = true;
             Users users;
             YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
             for (const auto& p : node["users"])
@@ -8140,24 +8157,72 @@ void entry()
                 ChatConfig cs;
                 YAML::Node node12 = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
                 cs = node12.as<ChatConfig>();
-                if (user.prefix == "")
+                regex rrrr("%prefix%");
+                smatch sssm;
+                regex rrrr1("%player%");
+                smatch sssm1;
+                regex rrrr2("%suffix%");
+                smatch sssm2;
+                bool is_prefixtok, is_suffixtok, is_playertok;
+                if (regex_search(cs.display_name_format, sssm, rrrr))
                 {
-                    replaceAll(cs.display_name_format, "%prefix%", utf8_encode(to_wstring("")));
-                    replaceAll(cs.display_name_format, "%player%", utf8_encode(to_wstring(ev.mPlayer->getName())));
-                    replaceAll(cs.display_name_format, "%suffix%", user.suffix);
-                    ev.mPlayer->setNameTag(cs.display_name_format);
+                    is_prefixtok = true;
                 }
-                if (user.suffix == "")
+                if (regex_search(cs.display_name_format, sssm1, rrrr2))
                 {
-                    replaceAll(cs.display_name_format, "%prefix%", user.prefix);
-                    replaceAll(cs.display_name_format, "%player%", utf8_encode(to_wstring(ev.mPlayer->getName())));
-                    replaceAll(cs.display_name_format, "%suffix%", utf8_encode(to_wstring("")));
-                    ev.mPlayer->setNameTag(cs.display_name_format);
+                    is_playertok = true;
                 }
-                if (user.prefix == "" && user.suffix == "")
+                if (regex_search(cs.display_name_format, sssm2, rrrr2))
+                {
+                    is_suffixtok = true;
+                }
+                if (is_prefixtok == true && is_playertok == true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), def_group.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), def_group.suffix);
+                }
+                else if (is_prefixtok == true && is_playertok == true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), def_group.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok == true && is_playertok != true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), def_group.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), def_group.suffix);
+                }
+                else if (is_prefixtok != true && is_playertok == true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), def_group.suffix);
+                }
+                else if (is_prefixtok != true && is_playertok != true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"),"");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), def_group.suffix);
+                }
+                else if (is_prefixtok == true && is_playertok != true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), def_group.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok != true && is_playertok == true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok != true && is_playertok != true && is_suffixtok != true)
                 {
                     return 1;
                 }
+                ev.mPlayer->setNameTag(cs.display_name_format);
                 return 1;
             }
             if (is_succ)
@@ -8166,30 +8231,78 @@ void entry()
                 ChatConfig cs;
                 YAML::Node node12 = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
                 cs = node12.as<ChatConfig>();
-                if (user.prefix == "")
+                regex rrrr("%prefix%");
+                smatch sssm;
+                regex rrrr1("%player%");
+                smatch sssm1;
+                regex rrrr2("%suffix%");
+                smatch sssm2;
+                bool is_prefixtok, is_suffixtok, is_playertok;
+                if (regex_search(cs.display_name_format, sssm, rrrr))
                 {
-                    replaceAll(cs.display_name_format, "%prefix%", utf8_encode(to_wstring("")));
-                    replaceAll(cs.display_name_format, "%player%", utf8_encode(to_wstring(ev.mPlayer->getName())));
-                    replaceAll(cs.display_name_format, "%suffix%", user.suffix);
-                    ev.mPlayer->setNameTag(cs.display_name_format);
+                    is_prefixtok = true;
                 }
-                if (user.suffix == "")
+                if (regex_search(cs.display_name_format, sssm1, rrrr2))
                 {
-                    replaceAll(cs.display_name_format, "%prefix%", user.prefix);
-                    replaceAll(cs.display_name_format, "%player%", utf8_encode(to_wstring(ev.mPlayer->getName())));
-                    replaceAll(cs.display_name_format, "%suffix%", utf8_encode(to_wstring("")));
-                    ev.mPlayer->setNameTag(cs.display_name_format);
+                    is_playertok = true;
                 }
-                if (user.prefix == "" && user.suffix == "")
+                if (regex_search(cs.display_name_format, sssm2, rrrr2))
+                {
+                    is_suffixtok = true;
+                }
+                if (is_prefixtok == true && is_playertok == true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), user.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), user.suffix);
+                }
+                else if (is_prefixtok == true && is_playertok == true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), user.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok == true && is_playertok != true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), user.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), user.suffix);
+                }
+                else if (is_prefixtok != true && is_playertok == true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), user.suffix);
+                }
+                else if (is_prefixtok != true && is_playertok != true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), user.suffix);
+                }
+                else if (is_prefixtok == true && is_playertok != true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), user.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok != true && is_playertok == true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok != true && is_playertok != true && is_suffixtok != true)
                 {
                     return 1;
                 }
+                ev.mPlayer->setNameTag(cs.display_name_format);
                 return 1;
             }
             return 1;
     });
-    Event::PlayerChatEvent::subscribe([](const Event::PlayerChatEvent& ev) 
-    {
+    Event::PlayerChatEvent::subscribe([](const Event::PlayerChatEvent& ev)
+        {
             string dim;
             if (ev.mPlayer->getDimension().getDimensionId() == 0)
                 dim = "OverWorld";
@@ -8200,7 +8313,7 @@ void entry()
             bool global_perm = false;
             string perm = "chatmanager.chat.global";
             if (!enabled)
-             return 1;
+                return 1;
             if (!chat_ranged || chat_range == 0)
             {
                 ChatConfig cs;
@@ -8230,38 +8343,114 @@ void entry()
                     is_suc = true;
                 }
                 auto pl = load_user(res_nick);
+                regex rrr("%prefix%");
+                smatch ssm;
+                regex rrr1("%player%");
+                smatch ssm1;
+                regex rrr2("%suffix%");
+                smatch ssm2;
+                regex rrr3("%message%");
+                smatch ssm3;
+                bool is_prefixtoken, is_suffixtoken, is_playertoken, is_msgtoken, is_prefixtoken1, is_suffixtoken1, is_playertoken1, is_msgtoken1;
                 if (is_suc)
                 {
-                    if (pl.prefix == "")
+                    if (regex_search(cs.global_message_format, ssm, rrr))
                     {
-                        auto sp = split(cs.global_message_format, "%prefix%");
-                        if (sp[0][sp[0].size() - 1] == ' ')
-                            cs.global_message_format = string(sp[0].begin(), sp[0].end() - 1) + sp[1];
-                        if (sp[1][sp[1].size() - 1] == ' ')
-                            cs.global_message_format = sp[0] + string(sp[1].begin(), sp[1].end() - 1);
-                        replaceAll(cs.global_message_format, "%player%", res_nick);
-                        replaceAll(cs.global_message_format, "%suffix%", pl.suffix);
-                        replaceAll(cs.global_message_format, "%message%", ev.mMessage);
+                        is_prefixtoken1 = true;
                     }
-                    if (pl.suffix == "")
+                    if (regex_search(cs.global_message_format, ssm1, rrr2))
                     {
-                        auto sp = split(cs.global_message_format, "%suffix%");
-                        if (sp[0][sp[0].size() - 1] == ' ')
-                            cs.global_message_format = string(sp[0].begin(), sp[0].end() - 1) + sp[1];
-                        if (sp[1][sp[1].size() - 1] == ' ')
-                            cs.global_message_format = sp[0] + string(sp[1].begin(), sp[1].end() - 1);
-                        replaceAll(cs.global_message_format, "%prefix%", pl.prefix);
-                        replaceAll(cs.global_message_format, "%player%", res_nick);
-                        replaceAll(cs.global_message_format, "%message%", ev.mMessage);
+                        is_playertoken1 = true;
                     }
-                    if (pl.prefix == "" && pl.suffix == "")
+                    if (regex_search(cs.global_message_format, ssm2, rrr2))
                     {
-                        auto sp = split(cs.global_message_format, "%prefix%");
-                        cs.global_message_format = sp[0] + sp[1];
-                        auto sp1 = split(cs.global_message_format, "%suffix%");
-                        cs.global_message_format = sp1[0] + sp1[1];
-                        replaceAll(cs.global_message_format, "%player%", res_nick);
-                        replaceAll(cs.global_message_format, "%message%", ev.mMessage);
+                        is_suffixtoken1 = true;
+                    }
+                    if (regex_search(cs.global_message_format, ssm3, rrr3))
+                    {
+                        is_msgtoken1 = true;
+                    }
+                    auto msg = string(ev.mMessage.begin() + 1, ev.mMessage.end());
+                    if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl.prefix);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl.suffix);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = "";
                     }
                     regex reg("§");
                     regex reg1("§k");
@@ -8308,7 +8497,6 @@ void entry()
                     }
                 }
                 auto pl123 = load_user(res_nick);
-               
                 regex reg("§");
                 regex reg1("§k");
                 smatch smt, smt1;
@@ -8356,7 +8544,7 @@ void entry()
                         cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
                         cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
                     }
-                    if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
+                    else if (is_prefixtoken != true && is_playertoken == true && is_suffixtoken == true && is_msgtoken == true)
                     {
                         cs.message_format = std::regex_replace(cs.message_format, regex("%player%"), res_nick);
                         cs.message_format = std::regex_replace(cs.message_format, regex("%suffix%"), pl123.suffix);
@@ -8424,11 +8612,11 @@ void entry()
                     }
                     else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken == true)
                     {
-                        replaceAll(cs.message_format, "%message%", pl123.suffix);
+                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
                     }
                     else if (is_prefixtoken != true && is_playertoken != true && is_suffixtoken != true && is_msgtoken != true)
                     {
-                        cs.message_format = std::regex_replace(cs.message_format, regex("%message%"), ev.mMessage);
+                        cs.message_format = "";
                     }
                     auto players = Level::getAllPlayers();
                     for (auto p : players)
@@ -8454,130 +8642,206 @@ void entry()
                 }
                 else if (ev.mMessage[0] == '!' && (checkPerm(res_nick, "chatmanager.chat.global") == true || checkPerm(res_nick, "chatmanager.override.ranged") == true) && is_suc)
                 {
-                        if (regex_search(cs.global_message_format, ssm, rrr))
+                    if (regex_search(cs.global_message_format, ssm, rrr))
+                    {
+                        is_prefixtoken1 = true;
+                    }
+                    if (regex_search(cs.global_message_format, ssm1, rrr2))
+                    {
+                        is_playertoken1 = true;
+                    }
+                    if (regex_search(cs.global_message_format, ssm2, rrr2))
+                    {
+                        is_suffixtoken1 = true;
+                    }
+                    if (regex_search(cs.global_message_format, ssm3, rrr3))
+                    {
+                        is_msgtoken1 = true;
+                    }
+                    auto msg = string(ev.mMessage.begin() + 1, ev.mMessage.end());
+                    if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                    }
+                    else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
+                    {
+                        cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
+                    }
+                    else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
+                    {
+                        cs.global_message_format = "";
+                    }
+                    auto players = Level::getAllPlayers();
+                    for (auto p : players)
+                    {
+                        if (regex_search(ev.mMessage, smt, reg) && regex_search(ev.mMessage, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
                         {
-                            is_prefixtoken1 = true;
+                            ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать цветные сообщения!"));
+                            return 0;
                         }
-                        if (regex_search(cs.global_message_format, ssm1, rrr2))
+                        else if (regex_search(ev.mMessage, smt1, reg1) && checkPerm(res_nick, "chatmanager.chat.magic") == false)
                         {
-                            is_playertoken1 = true;
+                            ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать волшебный цвет в сообщениях!"));
+                            return 0;
                         }
-                        if (regex_search(cs.global_message_format, ssm2, rrr2))
-                        {
-                            is_suffixtoken1 = true;
-                        }
-                        if (regex_search(cs.global_message_format, ssm3, rrr3))
-                        {
-                            is_msgtoken1 = true;
-                        }
-                        auto msg = string(ev.mMessage.begin() + 1, ev.mMessage.end());
-                        if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"),pl123.prefix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 == true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.suffix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 == true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 == true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 == true && is_msgtoken1 != true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
-                        }
-                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
-                        }
-                        else if (is_prefixtoken1 == true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                        }
-                        else if (is_prefixtoken1 == true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%prefix%"), pl123.prefix);
-                        }
-                        else if (is_prefixtoken1 != true && is_playertoken1 == true && is_suffixtoken1 != true && is_msgtoken1 != true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%player%"), res_nick);
-                        }
-                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 == true && is_msgtoken1 != true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%suffix%"), pl123.suffix);
-                        }
-                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 == true)
-                        {
-                            replaceAll(cs.global_message_format, "%message%", pl123.suffix);
-                        }
-                        else if (is_prefixtoken1 != true && is_playertoken1 != true && is_suffixtoken1 != true && is_msgtoken1 != true)
-                        {
-                            cs.global_message_format = std::regex_replace(cs.global_message_format, regex("%message%"), msg);
-                        }
-                        auto players = Level::getAllPlayers();
-                        for (auto p : players)
-                        {
-                            if (regex_search(ev.mMessage, smt, reg) && regex_search(ev.mMessage, smt1, reg1) != true && checkPerm(res_nick, "chatmanager.chat.color") == false)
-                            {
-                                    ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать цветные сообщения!"));
-                                    return 0;
-                            }
-                            else if (regex_search(ev.mMessage, smt1, reg1) && checkPerm(res_nick, "chatmanager.chat.magic") == false)
-                            {
-                                    ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас нет прав использовать волшебный цвет в сообщениях!"));
-                                    return 0;
-                            }
-                            (ServerPlayer*)p->sendText(utf8_encode(to_wstring("[§aG§r] ")) + cs.global_message_format);
-                        }
-                        return 0;
+                        (ServerPlayer*)p->sendText(utf8_encode(to_wstring("[§aG§r] ")) + cs.global_message_format);
+                    }
+                    return 0;
                 }
                 else if (ev.mMessage[0] == '!' && checkPerm(res_nick, "chatmanager.chat.global") == false)
                 {
-                        ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас недостаточно прав для отправки сообщений в глобальный чат!"));
-                        return 0;
+                    ev.mPlayer->sendText(utf8_encode(L"[Permissions Ex]: У вас недостаточно прав для отправки сообщений в глобальный чат!"));
+                    return 0;
                 }
             }
-    });
+        });
+        Event::PlayerMoveEvent::subscribe([](const Event::PlayerMoveEvent& ev) 
+        {
+                auto user = load_user(ev.mPlayer->getName());
+                ChatConfig cs;
+                YAML::Node node12 = YAML::LoadFile("plugins/Permissions Ex/chat.yml");
+                cs = node12.as<ChatConfig>();
+                regex rrrr("%prefix%");
+                smatch sssm;
+                regex rrrr1("%player%");
+                smatch sssm1;
+                regex rrrr2("%suffix%");
+                smatch sssm2;
+                bool is_prefixtok, is_suffixtok, is_playertok;
+                if (regex_search(cs.display_name_format, sssm, rrrr))
+                {
+                    is_prefixtok = true;
+                }
+                if (regex_search(cs.display_name_format, sssm1, rrrr2))
+                {
+                    is_playertok = true;
+                }
+                if (regex_search(cs.display_name_format, sssm2, rrrr2))
+                {
+                    is_suffixtok = true;
+                }
+                if (is_prefixtok == true && is_playertok == true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), user.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), user.suffix);
+                }
+                else if (is_prefixtok == true && is_playertok == true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), user.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok == true && is_playertok != true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), user.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), user.suffix);
+                }
+                else if (is_prefixtok != true && is_playertok == true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), user.suffix);
+                }
+                else if (is_prefixtok != true && is_playertok != true && is_suffixtok == true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), user.suffix);
+                }
+                else if (is_prefixtok == true && is_playertok != true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), user.prefix);
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok != true && is_playertok == true && is_suffixtok != true)
+                {
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%prefix%"), "");
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%player%"), ev.mPlayer->getName());
+                    cs.display_name_format = std::regex_replace(cs.display_name_format, regex("%suffix%"), "");
+                }
+                else if (is_prefixtok != true && is_playertok != true && is_suffixtok != true)
+                {
+                    return 1;
+                }
+                ev.mPlayer->setNameTag(cs.display_name_format);
+                return 1;
+        });
     Event::PlayerCmdEvent::subscribe([](const Event::PlayerCmdEvent& ev) 
     {
+            regex sssd("tell");
+            smatch sssm;
             string dim;
             if (ev.mPlayer->getDimension().getDimensionId() == 0)
                 dim = "OverWorld";
@@ -8595,6 +8859,7 @@ void entry()
                     users.users.push_back(p.as<_User>());
                 string res_nick;
                 auto plain = ev.mPlayer->getName();
+                auto player_cmd = split(ev.mCommand, " ");
                 auto x = split(plain, " ");
                 for (int i = 0; i < x.size(); ++i)
                 {
@@ -8607,19 +8872,128 @@ void entry()
                         }
                     }
                 }
+                string pl_nick;
+                int cnt = 0;
+                for (int i = 0; i < player_cmd.size(); ++i)
+                {
+                    for (auto v : users.users)
+                    {
+                        if (player_cmd[i] == v.nickname)
+                        {
+                            pl_nick = player_cmd[i];
+                            break;
+                        }
+                    }
+                    cnt++;
+                }
+                if (pl_nick != "")
+                {
+                    auto pls = Level::getAllPlayers();
+                    for (auto pll : pls)
+                    {
+                        auto vvv = pll->getName();
+                        regex r(pl_nick);
+                        smatch sm;
+                        if (regex_search(vvv, sm, r))
+                        {
+                            pll->setName(pl_nick);
+                            return 1;
+                        }
+                    }
+                }
                 fout << "[" + currentDateTime() + "]: Игрок " + res_nick + " использовал команду " + ev.mCommand + "\n";
                 fout.close();
                 regex r("tell");
                 smatch sm;
-                if (regex_search(ev.mCommand,sm,r) && (checkPerm(ev.mPlayer->getName(), perm) || checkPerm(ev.mPlayer->getName(), "plugins.*") || checkPerm(ev.mPlayer->getName(), "modifyworld.*") || checkPermWorlds(ev.mPlayer->getName(), perm, dim) || checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || checkPermWorlds(ev.mPlayer->getName(), "modifyworld.*", dim)))
+                if (regex_search(ev.mCommand,sssm,sssd) && (checkPerm(ev.mPlayer->getName(), perm) || checkPerm(ev.mPlayer->getName(), "plugins.*") || checkPerm(ev.mPlayer->getName(), "modifyworld.*") || checkPermWorlds(ev.mPlayer->getName(), perm, dim) || checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || checkPermWorlds(ev.mPlayer->getName(), "modifyworld.*", dim)))
                 {
                     return 1;
                 }
-                else  if (regex_search(ev.mCommand, sm, r) && (!checkPerm(ev.mPlayer->getName(), perm) || !checkPerm(ev.mPlayer->getName(), "plugins.*") || !checkPerm(ev.mPlayer->getName(), "modifyworld.*") || !checkPermWorlds(ev.mPlayer->getName(), perm, dim) || !checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || !checkPermWorlds(ev.mPlayer->getName(), "modifyworld.*", dim)))
+                else if (regex_search(ev.mCommand, sssm, sssd) && (!checkPerm(ev.mPlayer->getName(), perm) || !checkPerm(ev.mPlayer->getName(), "plugins.*") || !checkPerm(ev.mPlayer->getName(), "modifyworld.*") || !checkPermWorlds(ev.mPlayer->getName(), perm, dim) || !checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || !checkPermWorlds(ev.mPlayer->getName(), "modifyworld.*", dim)))
                 {
                     return 0;
                 }
                 return 1;
+            }
+            Users users;
+            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+            for (const auto& p : node["users"])
+                users.users.push_back(p.as<_User>());
+            auto player_cmd = split(ev.mCommand, " ");
+            string pl_nick;
+            int cnt = 0;
+            for (int i = 0; i < player_cmd.size(); ++i)
+            {
+                for (auto v : users.users)
+                {
+                    if (player_cmd[i] == v.nickname)
+                    {
+                        pl_nick = player_cmd[i];
+                        break;
+                    }
+                }
+                cnt++;
+            }
+            if (pl_nick != "")
+            {
+                auto pls = Level::getAllPlayers();
+                for (auto pll : pls)
+                {
+                    auto vvv = pll->getName();
+                    regex r(pl_nick);
+                    smatch sm;
+                    if (regex_search(vvv, sm, r))
+                    {
+                        pll->setName(pl_nick);
+                        if (regex_search(ev.mCommand, sssm, sssd) && (checkPerm(ev.mPlayer->getName(), perm) || checkPerm(ev.mPlayer->getName(), "plugins.*") || checkPerm(ev.mPlayer->getName(), "modifyworld.*") || checkPermWorlds(ev.mPlayer->getName(), perm, dim) || checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || checkPermWorlds(ev.mPlayer->getName(), "modifyworld.*", dim)))
+                        {
+                            return 1;
+                        }
+                        else if (regex_search(ev.mCommand, sssm, sssd) && (!checkPerm(ev.mPlayer->getName(), perm) || !checkPerm(ev.mPlayer->getName(), "plugins.*") || !checkPerm(ev.mPlayer->getName(), "modifyworld.*") || !checkPermWorlds(ev.mPlayer->getName(), perm, dim) || !checkPermWorlds(ev.mPlayer->getName(), "plugins.*", dim) || !checkPermWorlds(ev.mPlayer->getName(), "modifyworld.*", dim)))
+                        {
+                            return 0;
+                        }
+                        return 1;
+                    }
+                }
+            }
+            return 1;
+    });
+    Event::ConsoleCmdEvent::subscribe([](const Event::ConsoleCmdEvent& ev) 
+    {
+            Users users;
+            YAML::Node node = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+            for (const auto& p : node["users"])
+                users.users.push_back(p.as<_User>());
+            auto player_cmd = split(ev.mCommand, " ");
+            string pl_nick;
+            int cnt = 0;
+            for (int i = 0; i < player_cmd.size(); ++i)
+            {
+                for (auto v : users.users)
+                {
+                    if (player_cmd[i] == v.nickname)
+                    {
+                        pl_nick = player_cmd[i];
+                        break;
+                    }
+                }
+                cnt++;
+            }
+            if (pl_nick != "")
+            {
+                auto pls = Level::getAllPlayers();
+                for (auto pll : pls)
+                {
+                    auto vvv = pll->getName();
+                    regex r(pl_nick);
+                    smatch sm;
+                    if (regex_search(vvv, sm, r))
+                    {
+                        pll->setName(pl_nick);  
+                        return 1;
+                    }
+                }
             }
             return 1;
     });
@@ -8820,12 +9194,14 @@ void entry()
             ActorDamageSource* src = ev.mDamageSource;
             vector<string> nick;
             if (name == "minecraft:player")
+            {
                 nick = split(src->getEntity()->getNameTag(), " ");
+            }
             else
             {
                 auto id = ev.mMob->getActorUniqueId();
                 auto ppp = Level::getPlayer(id);
-                nick = split(ppp->getName(), ":");
+                nick = split(ppp->getName(), " ");
             }
             string res_nick;
             for (auto n : nick)
@@ -8905,19 +9281,40 @@ void entry()
                     {
                         return 1;
                     }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+                auto nn = pll->getName();
+                auto vx = split(nn, " ");
+                string res_nick2;
+                for (auto nnn : vx)
+                {
+                    for (auto v : users.users)
+                    {
+                        if (nnn == v.nickname)
+                        {
+                            res_nick2 = nnn;
+                            break;
+                        }
+                    }
                 }
                 perm = "modifyworld.damage.take.player." + pll->getName();
             }
             else
             {
-                auto mob = ev.mMob->getTypeName();
-                perm = "modifyworld.damage.take." + string(mob.begin() + 10, mob.end());
+                auto vs = split(ev.mDamageSource->getEntity()->getTypeName(), ":");
+                perm = "modifyworld.damage.take." + vs[1];
             }
             if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
             {
                 return 1;
             }
-            return 0;
+            else
+            {
+                return 0;
+            }
     });
     Event::PlayerInventoryChangeEvent::subscribe([](const Event::PlayerInventoryChangeEvent& ev)
         {
@@ -8948,8 +9345,8 @@ void entry()
             auto it = ev.mNewItemStack->getTypeName();
             if (it.size() == 0)
                 return 1;
-            string s = string(it.begin() + 10, it.end());
-            string perm = "modifyworld.items.enchant." + s;
+            auto vs = split(it, ":");
+            string perm = "modifyworld.items.enchant." + vs[1];
             if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
             {
                 return 1;
@@ -8998,8 +9395,8 @@ void entry()
             string perm;
             if (prev == "" && cont == "minecraft:chest")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.chest";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.chest";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9008,8 +9405,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:trapped_chest")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.trapped_chest";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.trapped_chest";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9018,8 +9415,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:ender_chest")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.ender_chest";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.ender_chest";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9028,8 +9425,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:barrel")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.barrel";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.barrel";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9038,8 +9435,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:furnance")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.furnance";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.furnance";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9048,8 +9445,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:dropper")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.dropper";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.dropper";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9058,8 +9455,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:dispenser")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.dispenser";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.dispenser";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9068,8 +9465,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:hopper")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.hopper";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.hopper";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9078,8 +9475,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:brewing_stand")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.brewing_stand";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.brewing_stand";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9088,8 +9485,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:blast_furnace")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.blast_furnace";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.blast_furnace";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9098,8 +9495,8 @@ void entry()
             }
             else if (prev == "" && cont == "minecraft:smoker")
             {
-                string s(_new.begin() + 10, _new.end());
-                perm = "modifyworld.items.put." + s + ".of.smoker";
+                auto vs = split(_new, ":");
+                perm = "modifyworld.items.put." + vs[1] + ".of.smoker";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9108,8 +9505,8 @@ void entry()
             }
             else if (prev == "" && (cont == "minecraft:undyed_shulker_box" || cont == "minecraft:shulker_box"))
             {
-               string s(_new.begin() + 10, _new.end());
-               perm = "modifyworld.items.put." + s + ".of.shulker_box";
+               auto vs = split(_new, ":");
+               perm = "modifyworld.items.put." + vs[1] + ".of.shulker_box";
                if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                {
                  return 1;
@@ -9118,8 +9515,8 @@ void entry()
             }
             if (_new == "" && cont == "minecraft:chest")
             {
-                string s(prev.begin() + 10, prev.end());
-                perm = "modifyworld.items.take." + s + ".of.chest";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.chest";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9128,8 +9525,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:trapped_chest")
             {
-                string s(prev.begin() + 10, prev.end());
-                perm = "modifyworld.items.take." + s + ".of.trapped_chest";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.trapped_chest";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9138,8 +9535,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:ender_chest")
             {
-                string s(prev.begin() + 10, prev.end());
-                perm = "modifyworld.items.take." + s + ".of.ender_chest";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.ender_chest";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9148,8 +9545,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:barrel")
             {
-                string s(prev.begin() + 10,prev.end());
-                perm = "modifyworld.items.take." + s + ".of.barrel";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.barrel";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9158,8 +9555,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:furnance")
             {
-                string s(prev.begin() + 10, prev.end());
-                perm = "modifyworld.items.take." + s + ".of.furnance";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.furnance";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9168,8 +9565,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:dropper")
             {
-                string s(prev.begin() + 10, prev.end());
-                perm = "modifyworld.items.take." + s + ".of.dropper";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.dropper";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9178,8 +9575,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:dispenser")
             {
-                string s(prev.begin() + 10,prev.end());
-                perm = "modifyworld.items.take." + s + ".of.dispenser";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.dispenser";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9188,8 +9585,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:hopper")
             {
-                string s(prev.begin() + 10,prev.end());
-                perm = "modifyworld.items.take." + s + ".of.hopper";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.hopper";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9198,8 +9595,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:brewing_stand")
             {
-                string s(prev.begin() + 10, prev.end());
-                perm = "modifyworld.items.take." + s + ".of.brewing_stand";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.brewing_stand";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9208,8 +9605,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:blast_furnace")
             {
-                string s(prev.begin() + 10, prev.end());
-                perm = "modifyworld.items.take." + s + ".of.blast_furnace";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.blast_furnace";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9218,8 +9615,8 @@ void entry()
             }
             else if (_new == "" && cont == "minecraft:smoker")
             {
-                string s(prev.begin() + 10, prev.end());
-                perm = "modifyworld.items.take." + s + ".of.smoker";
+                auto vs = split(prev, ":");
+                perm = "modifyworld.items.take." + vs[1] + ".of.smoker";
                 if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                 {
                     return 1;
@@ -9228,8 +9625,8 @@ void entry()
             }
             else if (_new == "" && (cont == "minecraft:undyed_shulker_box" || cont == "minecraft:shulker_box"))
             {
-               string s(prev.begin() + 10,prev.end());
-               perm = "modifyworld.items.take." + s + ".of.shulker_box";
+               auto vs = split(prev, ":");
+               perm = "modifyworld.items.take." + vs[1] + ".of.shulker_box";
                if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
                {
                  return 1;
@@ -9513,13 +9910,17 @@ void entry()
             }
             else
             {
-                perm = "modifyworld.damage.deal." + string(name.begin() + 10, name.end());
+                auto vs = split(name, ":");
+                perm = "modifyworld.damage.deal." + vs[1];
             }
             if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
             {
                 return 1;
             }
-            return 0;
+            else if ((checkPerm(res_nick, perm) != true || checkPerm(res_nick, "plugins.*") != true || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) != true || checkPermWorlds(res_nick, "plugins.*", dim) != true || checkPermWorlds(res_nick, "modifyworld.*", dim) != true))
+            {
+                return 0;
+            }
     });
    Event::PlayerUseItemEvent::subscribe([](const  Event::PlayerUseItemEvent& ev)
     {
@@ -9549,13 +9950,16 @@ void entry()
                }
            }
            auto it = ev.mItemStack->getTypeName();
-           string s = string(it.begin() + 10, it.end());
-           string perm = "modifyworld.items.throw." + s;
+           auto vs = split(it, ":");
+           string perm = "modifyworld.items.throw." + vs[1];
            if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
            {
                return 1;
            }
-           return 0;
+           else if ((checkPerm(res_nick, perm) != true || checkPerm(res_nick, "plugins.*") != true || checkPerm(res_nick, "modifyworld.*") != true || checkPermWorlds(res_nick, perm, dim) != true || checkPermWorlds(res_nick, "plugins.*", dim) != true || checkPermWorlds(res_nick, "modifyworld.*", dim) != true))
+           {
+               return 0;
+           }
     });
     Event::PlayerUseItemOnEvent::subscribe([](const  Event::PlayerUseItemOnEvent& ev)
         {
@@ -9593,9 +9997,9 @@ void entry()
             auto bl_name = string(bl_n.begin() + 10, bl_n.end());
             string perm,perm1;
             auto it = ev.mItemStack->getTypeName();
-            string s = string(it.begin() + 10, it.end());
-            perm = "modifyworld.item.use." + s + ".on.block." + bl_name;
-            perm1 ="modifyworld.items.use." + s + ".on.block." + bl_name;
+            auto vs = split(it, ":");
+            perm = "modifyworld.item.use." + vs[1] + ".on.block." + bl_name;
+            perm1 ="modifyworld.items.use." + vs[1] + ".on.block." + bl_name;
             if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))) || ((checkPerm(res_nick, perm1) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm1, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
             {
                  return 1;
@@ -9705,8 +10109,8 @@ void entry()
                }
            }
            string s = ev.mItemStack->getTypeName();
-           string s1(s.begin() + 10, s.end());
-           string perm = "modifyworld.items.drop." + s1;
+           auto vs = split(s, ":");
+           string perm = "modifyworld.items.drop." + vs[1];
            if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
            {
                return 1;
@@ -9811,10 +10215,12 @@ void entry()
            string perm = "modifyworld.digestion"; 
            if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
            {
+               cerr << "attack = 1\n";
                return 1;
            }
            else if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
            {
+               cerr << "attack = 0\n";
                return 0;
            }
        });
