@@ -1,8 +1,25 @@
-﻿     Создается библиотека D:\PermissionsEx\x64\Release\PermissionsEx.lib и объект D:\PermissionsEx\x64\Release\PermissionsEx.exp
+﻿  dllmain.cpp
+  Defining YAML_CPP_API for DLL import
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(90,21): warning C4996: 'std::codecvt_utf8<wchar_t,1114111,(std::codecvt_mode)0>': warning STL4017: std::wbuffer_convert, std::wstring_convert, and the <codecvt> header (containing std::codecvt_mode, std::codecvt_utf8, std::codecvt_utf16, and std::codecvt_utf8_utf16) are deprecated in C++17. (The std::codecvt class template is NOT deprecated.) The C++ Standard doesn't provide equivalent non-deprecated functionality; consider using MultiByteToWideChar() and WideCharToMultiByte() from <Windows.h> instead. You can define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to acknowledge that you have received this warning.
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\codecvt(34,1): message : см. объявление "std::codecvt_utf8"
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(90,5): warning C4996: 'std::wstring_convert<std::codecvt_utf8<wchar_t,1114111,(std::codecvt_mode)0>,wchar_t,std::allocator<wchar_t>,std::allocator<char>>': warning STL4017: std::wbuffer_convert, std::wstring_convert, and the <codecvt> header (containing std::codecvt_mode, std::codecvt_utf8, std::codecvt_utf16, and std::codecvt_utf8_utf16) are deprecated in C++17. (The std::codecvt class template is NOT deprecated.) The C++ Standard doesn't provide equivalent non-deprecated functionality; consider using MultiByteToWideChar() and WideCharToMultiByte() from <Windows.h> instead. You can define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to acknowledge that you have received this warning.
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.29.30133\include\xlocbuf(302,1): message : см. объявление "std::wstring_convert"
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(90,44): warning C4996: 'std::wstring_convert<std::codecvt_utf8<wchar_t,1114111,(std::codecvt_mode)0>,wchar_t,std::allocator<wchar_t>,std::allocator<char>>::wstring_convert': warning STL4017: std::wbuffer_convert, std::wstring_convert, and the <codecvt> header (containing std::codecvt_mode, std::codecvt_utf8, std::codecvt_utf16, and std::codecvt_utf8_utf16) are deprecated in C++17. (The std::codecvt class template is NOT deprecated.) The C++ Standard doesn't provide equivalent non-deprecated functionality; consider using MultiByteToWideChar() and WideCharToMultiByte() from <Windows.h> instead. You can define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to acknowledge that you have received this warning.
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(91,25): warning C4996: 'std::wstring_convert<std::codecvt_utf8<wchar_t,1114111,(std::codecvt_mode)0>,wchar_t,std::allocator<wchar_t>,std::allocator<char>>::from_bytes': warning STL4017: std::wbuffer_convert, std::wstring_convert, and the <codecvt> header (containing std::codecvt_mode, std::codecvt_utf8, std::codecvt_utf16, and std::codecvt_utf8_utf16) are deprecated in C++17. (The std::codecvt class template is NOT deprecated.) The C++ Standard doesn't provide equivalent non-deprecated functionality; consider using MultiByteToWideChar() and WideCharToMultiByte() from <Windows.h> instead. You can define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING or _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS to acknowledge that you have received this warning.
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(744,16): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(5031,1): warning C4102: jar: неиспользованная метка
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(7292,26): warning C4101: e: неиспользованная локальная переменная
+D:\LL 2.0\dev\Header\MC\ChestBlockActor.hpp(27,52): warning C4099: ItemStack: имя типа, ранее отображенное с помощью "class", теперь отображено с помощью "struct"
+D:\LL 2.0\dev\Header\MC\Container.hpp(8): message : см. объявление "ItemStack"
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(8369,38): warning C4101: is_suffixtoken: неиспользованная локальная переменная
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(8369,70): warning C4101: is_msgtoken: неиспользованная локальная переменная
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(8369,22): warning C4101: is_prefixtoken: неиспользованная локальная переменная
+D:\PermissionsEx\PermissionsEx\dllmain.cpp(8369,54): warning C4101: is_playertoken: неиспользованная локальная переменная
+     Создается библиотека D:\PermissionsEx\x64\Release\PermissionsEx.lib и объект D:\PermissionsEx\x64\Release\PermissionsEx.exp
 LINK : warning LNK4098: библиотека по умолчанию "MSVCRT" конфликтует с использованием других библиотек; используйте /NODEFAULTLIB:library
   Создание кода
-  0 of 5971 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+  1 of 5973 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+    43 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   PermissionsEx.vcxproj -> D:\PermissionsEx\x64\Release\PermissionsEx.dll

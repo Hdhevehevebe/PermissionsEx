@@ -541,7 +541,13 @@ bool checkPerm(string pl, string perm)
                 }
             }
         }
-        auto pl1 = load_user(res_nick);
+        _User pl1;
+        if (nick.size() == 1)
+            pl1 = load_user(plain);
+        else if (nick.size() > 1)
+            pl1 = load_user(res_nick);
+        else if (nick.size() == 0)
+            return 1;
         _Group gr;
         for (auto xh : pl1.groups)
         {
@@ -575,8 +581,8 @@ bool checkPerm(string pl, string perm)
 
 bool checkPermWorlds(string pl, string perm,string world)
 {
-    _Groups    groups;
-    Users      users;
+    _Groups    groups1;
+    Users      users1;
     auto nodes = YAML::LoadFile("plugins/Permissions Ex/users.yml");
     for (const auto& p : nodes["users"])
     {
@@ -593,7 +599,7 @@ bool checkPermWorlds(string pl, string perm,string world)
     string res_nick;
     for (auto n : nick)
     {
-        for (auto v : users.users)
+        for (auto v : users1.users)
         {
             if (n == v.nickname)
             {
@@ -602,7 +608,13 @@ bool checkPermWorlds(string pl, string perm,string world)
             }
         }
     }
-    auto pl1 = load_user(res_nick);
+    _User pl1;
+    if (nick.size() == 1)
+        pl1 = load_user(plain);
+    else if (nick.size() > 1)
+        pl1 = load_user(res_nick);
+    else if (nick.size() == 0)
+        return 1;
     _Group gr;
     for (auto xh : pl1.groups)
     {
@@ -1037,7 +1049,7 @@ public:
                              break;
                          }
                      }
-                     prefix = utf8_encode(to_wstring(prefix));
+                     prefix = prefix;
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (player.getName() == users.users[i].nickname)
@@ -1089,7 +1101,7 @@ public:
                              break;
                          }
                      }
-                     prefix = utf8_encode(to_wstring(prefix));
+                     prefix = prefix;
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1156,7 +1168,7 @@ public:
                              break;
                          }
                      }
-                     prefix = utf8_encode(to_wstring(prefix));
+                     prefix = prefix;
                      remove("plugins/Permissions Ex/users.yml");
                      node.reset();
                      for (auto us : users.users)
@@ -1199,7 +1211,7 @@ public:
                              break;
                          }
                      }
-                     prefix = utf8_encode(to_wstring(prefix));
+                     prefix = prefix;
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1276,7 +1288,7 @@ public:
                              suffix[i] = '§';
                          }
                      }
-                     suffix = utf8_encode(to_wstring(suffix));
+                     suffix = suffix;
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1327,7 +1339,7 @@ public:
                              suffix[i] = '§';
                          }
                      }
-                     suffix = utf8_encode(to_wstring(suffix));
+                     suffix = suffix;
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -1387,7 +1399,7 @@ public:
                              output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
                              return;
                          }
-                         suffix = utf8_encode(to_wstring(suffix));
+                         suffix = suffix;
                          for (int i = 0; i < users.users.size(); ++i)
                          {
                              if (users.users[i].nickname == player.getName())
@@ -1444,7 +1456,7 @@ public:
                          output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
                          return;
                      }
-                     suffix = utf8_encode(to_wstring(suffix));
+                     suffix = suffix;
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (users.users[i].nickname == player.getName())
@@ -2125,6 +2137,7 @@ public:
                          output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
                          return;
                      }
+
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (player.getName() == users.users[i].nickname)
@@ -2136,7 +2149,7 @@ public:
                          }
                          cnt++;
                      }
-                     remove("plugins/Permissions Ex/users.yml");
+                     cerr << remove("plugins/Permissions Ex/users.yml") << endl;
                      node.reset();
                      for (auto us : users.users)
                          node["users"].push_back(us);
@@ -2170,6 +2183,7 @@ public:
                          output.error(utf8_encode(L"[Permissions Ex]: Данного игрока нету в бекенде!"));
                          return;
                      }
+                     cerr << users.users.size() << endl;
                      for (int i = 0; i < users.users.size(); ++i)
                      {
                          if (player.getName() == users.users[i].nickname)
@@ -2181,7 +2195,8 @@ public:
                          }
                          cnt++;
                      }
-                     remove("plugins/Permissions Ex/users.yml");
+                     cerr << remove("plugins/Permissions Ex/users.yml") << endl;
+                     cerr << users.users.size() << endl;
                      node.reset();
                      for (auto us : users.users)
                          node["users"].push_back(us);
@@ -3293,7 +3308,7 @@ public:
                                  users.users.push_back(p.as<_User>());
                              }
                              _Groups groups;
-                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                              for (const auto& p : node1["users"])
                              {
                                  groups.groups.push_back(p.as<_Group>());
@@ -3362,7 +3377,7 @@ public:
                                  users.users.push_back(p.as<_User>());
                              }
                              _Groups groups;
-                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                              for (const auto& p : node1["users"])
                              {
                                  groups.groups.push_back(p.as<_Group>());
@@ -3433,7 +3448,7 @@ public:
                                  users.users.push_back(p.as<_User>());
                              }
                              _Groups groups;
-                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                              for (const auto& p : node1["users"])
                              {
                                  groups.groups.push_back(p.as<_Group>());
@@ -3502,7 +3517,7 @@ public:
                                  users.users.push_back(p.as<_User>());
                              }
                              _Groups groups;
-                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/users.yml");
+                             auto node1 = YAML::LoadFile("plugins/Permissions Ex/groups.yml");
                              for (const auto& p : node1["users"])
                              {
                                  groups.groups.push_back(p.as<_Group>());
@@ -3841,7 +3856,7 @@ public:
                               prefix[i] = '§';
                           }
                       }
-                      prefix = utf8_encode(to_wstring(prefix));
+                      prefix = prefix;
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3888,7 +3903,7 @@ public:
                               prefix[i] = '§';
                           }
                       }
-                      prefix = utf8_encode(to_wstring(prefix));
+                      prefix = prefix;
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3941,7 +3956,7 @@ public:
                               prefix[i] = '§';
                           }
                       }
-                      prefix = utf8_encode(to_wstring(prefix));
+                      prefix = prefix;
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -3988,7 +4003,7 @@ public:
                               prefix[i] = '§';
                           }
                       }
-                      prefix = utf8_encode(to_wstring(prefix));
+                      prefix = prefix;
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -4060,7 +4075,7 @@ public:
                               suffix[i] = '§';
                           }
                       }
-                      suffix = utf8_encode(to_wstring(suffix));
+                      suffix = suffix;
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -4107,7 +4122,7 @@ public:
                               suffix[i] = '§';
                           }
                       }
-                      suffix = utf8_encode(to_wstring(suffix));
+                      suffix = suffix;
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -4160,7 +4175,7 @@ public:
                               suffix[i] = '§';
                           }
                       }
-                      suffix = utf8_encode(to_wstring(suffix));
+                      suffix = suffix;
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -4207,7 +4222,7 @@ public:
                               suffix[i] = '§';
                           }
                       }
-                      suffix = utf8_encode(to_wstring(suffix));
+                      suffix = suffix;
                       for (int i = 0; i < groups.groups.size(); ++i)
                       {
                           if (group == groups.groups[i].name)
@@ -4283,7 +4298,7 @@ public:
                               prefix[i] = '§';
                           }
                       }
-                      prefix = utf8_encode(to_wstring(prefix));
+                      prefix = prefix;
                       for (int i = 0; i < group_suffix.size(); ++i)
                       {
                           if (group_suffix[i] == '&')
@@ -4291,7 +4306,7 @@ public:
                               suffix[i] = '§';
                           }
                       }
-                      suffix = utf8_encode(to_wstring(suffix));
+                      suffix = suffix;
                       gr.prefix = prefix;
                       gr.suffix = suffix;
                       if (is_default)
@@ -7544,8 +7559,8 @@ THook(void, "?handle@ServerNetworkHandler@@UEAAXAEBVNetworkIdentifier@@AEBVCraft
         }
     }
     string s = pkt.outputItems[0].descriptor.getItem()->getSerializedName();
-    string s1(s.begin() + 10, s.end());
-    string perm = "modifyworld.items.craft." + s1;
+    auto vs = split(s, ":");
+    string perm = "modifyworld.items.craft." + vs[1];
     if ((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim)))
     {
         original(_this, netid, pkt);
@@ -10042,8 +10057,8 @@ void entry()
             {
                 return 1;
             }
-            
-            return 0;
+            else
+             return 0;
     });
     Event::PlayerChangeDimEvent::subscribe([](const Event::PlayerChangeDimEvent& ev) 
     {
@@ -10215,12 +10230,10 @@ void entry()
            string perm = "modifyworld.digestion"; 
            if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
            {
-               cerr << "attack = 1\n";
                return 1;
            }
            else if (((checkPerm(res_nick, perm) || checkPerm(res_nick, "plugins.*") || checkPerm(res_nick, "modifyworld.*") || checkPermWorlds(res_nick, perm, dim) || checkPermWorlds(res_nick, "plugins.*", dim) || checkPermWorlds(res_nick, "modifyworld.*", dim))))
            {
-               cerr << "attack = 0\n";
                return 0;
            }
        });
